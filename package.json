@@ -18,7 +18,11 @@
     "watch": "cross-env tsc --watch",
     "test": "cross-env jest",
     "seed": "cross-env medusa seed -f ./data/seed.json",
-    "start": "cross-env npm run build && medusa start",
+    "start": "medusa migrations run && medusa start",
+    "start:dev": "cross-env NODE_ENV=development yarn start",
+    "start:test": "cross-env NODE_ENV=test yarn start",
+    "start:staging": "cross-env NODE_ENV=staging yarn start",
+    "start:prod": "cross-env NODE_ENV=production yarn start",
     "start:custom": "cross-env npm run build && node --preserve-symlinks index.js",
     "dev": "cross-env npm run build && medusa develop",
     "build:admin": "cross-env medusa-admin build"
