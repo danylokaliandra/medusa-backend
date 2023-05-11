@@ -52,6 +52,23 @@ const S3_REGION = process.env.S3_REGION;
 const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
 const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
 
+// SENDGRID
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const SENDGRID_FROM = process.env.SENDGRID_FROM;
+const SENDGRID_ORDER_PLACED = process.env.SENDGRID_ORDER_PLACED;
+const SENDGRID_ORDER_CANCELED = process.env.SENDGRID_ORDER_CANCELED;
+const SENDGRID_ORDER_SHIPPED = process.env.SENDGRID_ORDER_SHIPPED;
+const SENDGRID_ORDER_RETURN_REQUESTED = process.env.SENDGRID_ORDER_RETURN_REQUESTED;
+const SENDGRID_ORDER_ITEMS_RETURNED = process.env.SENDGRID_ORDER_ITEMS_RETURNED;
+const SENDGRID_CLAIM_SHIPMENT_CREATED = process.env.SENDGRID_CLAIM_SHIPMENT_CREATED;
+const SENDGRID_SWAP_CREATED = process.env.SENDGRID_SWAP_CREATED;
+const SENDGRID_SWAP_SHIPMENT_CREATED = process.env.SENDGRID_SWAP_SHIPMENT_CREATED;
+const SENDGRID_SWAP_RECEIVED = process.env.SENDGRID_SWAP_RECEIVED;
+const SENDGRID_GIFT_CARD_CREATED = process.env.SENDGRID_GIFT_CARD_CREATED;
+const SENDGRID_CUSTOMER_PASSWORD_RESET = process.env.SENDGRID_CUSTOMER_PASSWORD_RESET;
+const SENDGRID_USER_PASSWORD_RESET = process.env.SENDGRID_USER_PASSWORD_RESET;
+const SENDGRID_MEDUSA_RESTOCK = process.env.SENDGRID_MEDUSA_RESTOCK;
+
 // PLUGINS
 const plugins = [
   `medusa-fulfillment-manual`,
@@ -61,6 +78,27 @@ const plugins = [
     /** @type {import('@medusajs/admin').PluginOptions} */
     options: {
       autoRebuild: true,
+    },
+  },
+  // Email notifications
+  {
+    resolve: `medusa-plugin-sendgrid`,
+    options: {
+      api_key: SENDGRID_API_KEY,
+      from: SENDGRID_FROM,
+      order_placed_template: SENDGRID_ORDER_PLACED,
+      order_canceled_template: SENDGRID_ORDER_CANCELED,
+      order_shipped_template: SENDGRID_ORDER_SHIPPED,
+      order_return_requested_template: SENDGRID_ORDER_RETURN_REQUESTED,
+      order_items_returned_template: SENDGRID_ORDER_ITEMS_RETURNED,
+      claim_shipment_created_template: SENDGRID_CLAIM_SHIPMENT_CREATED,
+      swap_created_template: SENDGRID_SWAP_CREATED,
+      swap_shipment_created_template: SENDGRID_SWAP_SHIPMENT_CREATED,
+      swap_received_template: SENDGRID_SWAP_RECEIVED,
+      gift_card_created_template: SENDGRID_GIFT_CARD_CREATED,
+      customer_password_reset_template: SENDGRID_CUSTOMER_PASSWORD_RESET,
+      user_password_reset_template: SENDGRID_USER_PASSWORD_RESET,
+      medusa_restock_template: SENDGRID_MEDUSA_RESTOCK,
     },
   },
   // File service storage - the LAST plugin declared will be used
@@ -100,7 +138,7 @@ const modules = {
   eventBus: {
     resolve: "@medusajs/event-bus-redis",
     options: {
-      redisUrl: REDIS_URL
+      redisUrl: REDIS_URL,
     }
   },
   cacheService: {
