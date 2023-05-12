@@ -1,5 +1,9 @@
 import { EventBusService } from "@medusajs/medusa"
 
+const SENDGRID_INVITE_USER = process.env.SENDGRID_INVITE_USER
+const SENDGRID_FROM = process.env.SENDGRID_FROM
+const ADMIN_URL = process.env.ADMIN_URL
+
 type InjectedDependencies = {
   eventBusService: EventBusService
   sendgridService: any
@@ -20,15 +24,15 @@ class InviteSubscriber {
   }
 
   handleInvite = async (data: Record<string, any>) => {
-    const HOSTNAME = process.env.HOSTNAME
     this.sendGridService.sendEmail({
-      templateId: process.env.SENDGRID_INVITE_USER,
-      from: process.env.SENDGRID_FROM,
+      templateId: SENDGRID_INVITE_USER,
+      from: SENDGRID_FROM,
       to: data.user_email,
       dynamic_template_data: {
         token: data.token,
         user_email: data.user_email,
-        HOSTNAME
+        admin_url: ADMIN_URL
+        /*data*/ /* add in to see the full data object returned by the event */
       }
     })
   }
