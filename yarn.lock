@@ -2247,11 +2247,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@medusajs/medusa-cli@npm:1.3.13":
-  version: 1.3.13
-  resolution: "@medusajs/medusa-cli@npm:1.3.13"
+"@medusajs/medusa-cli@npm:1.3.14":
+  version: 1.3.14
+  resolution: "@medusajs/medusa-cli@npm:1.3.14"
   dependencies:
-    "@medusajs/utils": 1.8.4
+    "@medusajs/utils": 1.8.5
     axios: ^0.21.4
     chalk: ^4.0.0
     configstore: 5.0.1
@@ -2281,7 +2281,7 @@ __metadata:
     yargs: ^15.3.1
   bin:
     medusa: cli.js
-  checksum: a9c790dd4bc60d0f7b0a604623ff285a802a8ea4fc7eb8a871fe4ec1f2564b1c8da3b46485e61dc26e4334a4866133dcc18becca0bf3e94db014c1423472e98e
+  checksum: 3905c63fe58fd429ca679e7b1c246e7f3ca6c19a1e561e84946de1ac2e646c19135e5aba88a106c15a52c781f181fb97c3f6b1356c17e8ee814c19e5d880acb7
   languageName: node
   linkType: hard
 
@@ -2337,13 +2337,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@medusajs/medusa@npm:1.10.1":
-  version: 1.10.1
-  resolution: "@medusajs/medusa@npm:1.10.1"
+"@medusajs/medusa@npm:1.11.0":
+  version: 1.11.0
+  resolution: "@medusajs/medusa@npm:1.11.0"
   dependencies:
-    "@medusajs/medusa-cli": 1.3.13
-    "@medusajs/modules-sdk": 1.8.5
-    "@medusajs/utils": 1.8.4
+    "@medusajs/medusa-cli": 1.3.14
+    "@medusajs/modules-sdk": 1.8.6
+    "@medusajs/utils": 1.8.5
     "@types/ioredis": ^4.28.10
     "@types/lodash": ^4.14.191
     awilix: ^8.0.0
@@ -2390,12 +2390,12 @@ __metadata:
     uuid: ^9.0.0
     winston: ^3.8.2
   peerDependencies:
-    "@medusajs/types": 1.8.5
+    "@medusajs/types": 1.8.6
     medusa-interfaces: 1.3.7
     typeorm: "*"
   bin:
     medusa: cli.js
-  checksum: aa8064650bd568a5dd929a2e9958fa485965c660dc2fda54249cc74affb7bc499bc95899b318f4dd8bb402451f3e6ff7a73b2bccb787281887ce4fdd8e3c637d
+  checksum: 1f76f8f832963539355f02d8f68c61df7f8d0685955fffa002d773e3ff511712c4610eea4215ac686850335d75af82ca38ae47072216293b69d0c8c8f53d9c5b
   languageName: node
   linkType: hard
 
@@ -2413,17 +2413,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@medusajs/modules-sdk@npm:1.8.5":
-  version: 1.8.5
-  resolution: "@medusajs/modules-sdk@npm:1.8.5"
+"@medusajs/modules-sdk@npm:1.8.6":
+  version: 1.8.6
+  resolution: "@medusajs/modules-sdk@npm:1.8.6"
   dependencies:
-    "@medusajs/types": 1.8.5
-    "@medusajs/utils": 1.8.4
+    "@medusajs/types": 1.8.6
+    "@medusajs/utils": 1.8.5
     awilix: ^8.0.0
     glob: 7.1.6
     medusa-telemetry: ^0.0.16
     resolve-cwd: ^3.0.0
-  checksum: f41ccab8a92b864d737f7db1aeb8e88ec10f94843bf26936c032eebbd4018646f0745fd98a82aea96b9748604cc44452fdf9aa53746ef847ce03f0ea4e7a19a4
+  checksum: 9934e5e6a7a7721c14b7ba0a93a92166dcbf15d35754ac9be07ed219608f05809e30df355ce1f6d50391f91670ab7f5e1a98e00cf19adc3d92a150c9d9057ccb
   languageName: node
   linkType: hard
 
@@ -2434,10 +2434,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@medusajs/types@npm:1.8.5":
-  version: 1.8.5
-  resolution: "@medusajs/types@npm:1.8.5"
-  checksum: 8b9005d346481ea57af20fc80329b5889907ed5812f6824e5fe17438ac660a2196cca65ac7dff563b35fff1ee90a2601a683367d7203d979fcaec2d0fe29eecd
+"@medusajs/types@npm:1.8.6":
+  version: 1.8.6
+  resolution: "@medusajs/types@npm:1.8.6"
+  checksum: a86553cb8807405478b5cf5ead1a1276b4b287893d05adf5d2f6695be12bcbbeb79f0d4c77cfe9f4d5d40e4ce5c5621da407f53145548c6720748feb9c5c2359
   languageName: node
   linkType: hard
 
@@ -2454,16 +2454,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@medusajs/utils@npm:1.8.4":
-  version: 1.8.4
-  resolution: "@medusajs/utils@npm:1.8.4"
+"@medusajs/utils@npm:1.8.5":
+  version: 1.8.5
+  resolution: "@medusajs/utils@npm:1.8.5"
   dependencies:
     awilix: ^8.0.0
     class-transformer: ^0.5.1
     class-validator: ^0.14.0
-    typeorm: "npm:@medusajs/typeorm@0.3.16-next.0"
+    typeorm: ^0.3.16
     ulid: ^2.3.0
-  checksum: 15f94e71a95a7f40298f489f8588711c614899a984bfc0b915e290b5745cc5135eb527b6347860fd674b46187740d03fc8fab053ace851fef85a3a1c38dd0a92
+  checksum: 568a82fbc146da1fed6dd66707c3f425053bad30b367995eeb027bc5492fe1aa6c9f33576e77bb8ba31eea4d425cb36d4c023ddb469a9d703cc8ee3650208a9d
   languageName: node
   linkType: hard
 
@@ -6719,7 +6719,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-fns@npm:^2.24.0":
+"date-fns@npm:^2.24.0, date-fns@npm:^2.29.3":
   version: 2.30.0
   resolution: "date-fns@npm:2.30.0"
   dependencies:
@@ -9898,7 +9898,7 @@ __metadata:
     "@medusajs/cache-redis": ^1.8.4
     "@medusajs/event-bus-local": ^1.9.1
     "@medusajs/event-bus-redis": ^1.8.4
-    "@medusajs/medusa": 1.10.1
+    "@medusajs/medusa": 1.11.0
     "@medusajs/medusa-cli": ^1.3.12
     "@types/express": ^4.17.13
     "@types/jest": ^27.4.0
@@ -9923,7 +9923,7 @@ __metadata:
     rimraf: ^3.0.2
     ts-jest: ^27.0.7
     ts-loader: ^9.2.6
-    typeorm: "npm:@medusajs/typeorm@next"
+    typeorm: ^0.3.16
     typescript: ^4.5.2
   languageName: unknown
   linkType: soft
@@ -13336,7 +13336,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typeorm@npm:@medusajs/typeorm@0.3.16-next.0, typeorm@npm:@medusajs/typeorm@next":
+"typeorm@npm:@medusajs/typeorm@0.3.16-next.0":
   version: 0.3.16-next.0
   resolution: "@medusajs/typeorm@npm:0.3.16-next.0"
   dependencies:
@@ -13412,6 +13412,86 @@ __metadata:
     typeorm-ts-node-commonjs: cli-ts-node-commonjs.js
     typeorm-ts-node-esm: cli-ts-node-esm.js
   checksum: b819ff2fb843392463a055a0275c833ec28090a208b141c0ed40ced5106e4cea973efe6c0fc4f5f435960acf93ed64fb3f39b5d9e55a59c2499e051c7058bb6d
+  languageName: node
+  linkType: hard
+
+"typeorm@npm:^0.3.16":
+  version: 0.3.16
+  resolution: "typeorm@npm:0.3.16"
+  dependencies:
+    "@sqltools/formatter": ^1.2.5
+    app-root-path: ^3.1.0
+    buffer: ^6.0.3
+    chalk: ^4.1.2
+    cli-highlight: ^2.1.11
+    date-fns: ^2.29.3
+    debug: ^4.3.4
+    dotenv: ^16.0.3
+    glob: ^8.1.0
+    mkdirp: ^2.1.3
+    reflect-metadata: ^0.1.13
+    sha.js: ^2.4.11
+    tslib: ^2.5.0
+    uuid: ^9.0.0
+    yargs: ^17.6.2
+  peerDependencies:
+    "@google-cloud/spanner": ^5.18.0
+    "@sap/hana-client": ^2.12.25
+    better-sqlite3: ^7.1.2 || ^8.0.0
+    hdb-pool: ^0.1.6
+    ioredis: ^5.0.4
+    mongodb: ^5.2.0
+    mssql: ^9.1.1
+    mysql2: ^2.2.5 || ^3.0.1
+    oracledb: ^5.1.0
+    pg: ^8.5.1
+    pg-native: ^3.0.0
+    pg-query-stream: ^4.0.0
+    redis: ^3.1.1 || ^4.0.0
+    sql.js: ^1.4.0
+    sqlite3: ^5.0.3
+    ts-node: ^10.7.0
+    typeorm-aurora-data-api-driver: ^2.0.0
+  peerDependenciesMeta:
+    "@google-cloud/spanner":
+      optional: true
+    "@sap/hana-client":
+      optional: true
+    better-sqlite3:
+      optional: true
+    hdb-pool:
+      optional: true
+    ioredis:
+      optional: true
+    mongodb:
+      optional: true
+    mssql:
+      optional: true
+    mysql2:
+      optional: true
+    oracledb:
+      optional: true
+    pg:
+      optional: true
+    pg-native:
+      optional: true
+    pg-query-stream:
+      optional: true
+    redis:
+      optional: true
+    sql.js:
+      optional: true
+    sqlite3:
+      optional: true
+    ts-node:
+      optional: true
+    typeorm-aurora-data-api-driver:
+      optional: true
+  bin:
+    typeorm: cli.js
+    typeorm-ts-node-commonjs: cli-ts-node-commonjs.js
+    typeorm-ts-node-esm: cli-ts-node-esm.js
+  checksum: d889f6b4392367c38d9748fabaab1a75d21d78e7aa62088d53847958f2308b672acf8ab3e0bcf26c880fa52fac54be9a78ca43c99f19c4fe604fab458dc04c17
   languageName: node
   linkType: hard
 
