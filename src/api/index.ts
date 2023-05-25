@@ -1,6 +1,10 @@
 import { Router } from "express"
+import { registerSalesChannel } from "./middlewares/sales-channel"
 
 export default (rootDirectory: string): Router | Router[] => {
-  // add your custom routes here
-  return []
+  // Custom routes
+  const router = Router()
+  router.use(registerSalesChannel)
+
+  return router
 }

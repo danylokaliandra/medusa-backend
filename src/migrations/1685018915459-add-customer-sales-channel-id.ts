@@ -11,5 +11,4 @@ export class AddCustomerSalesChannelId1685018915459 implements MigrationInterfac
         await queryRunner.query(`DROP INDEX "public"."CustomerSalesChannelId"`);
         await queryRunner.query(`ALTER TABLE "customer" DROP COLUMN "sales_channel_id"`);
     }
-
 }
