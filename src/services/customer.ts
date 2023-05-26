@@ -10,10 +10,6 @@ type CreateCustomerInput = {
   sales_channel_id?: string;
 } & MedusaCreateCustomerInput;
 
-type CustomerSelector = MedusaSelector<Customer> & {
-  sales_channel_id?: string;
-};
-
 type CustomerFilter = {
   email: string;
   sales_channel_id?: string;
