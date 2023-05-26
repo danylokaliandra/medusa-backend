@@ -3,6 +3,7 @@ import { MedusaError } from "medusa-core-utils"
 import { FindConfig, Selector as MedusaSelector } from "@medusajs/medusa/dist/types/common"
 import { CustomerService as MedusaCustomerService } from "@medusajs/medusa"
 import { Customer } from "../models/customer"
+import { buildQuery } from "@medusajs/medusa/dist/utils"
 import { CreateCustomerInput as MedusaCreateCustomerInput } from "@medusajs/medusa/dist/types/customers"
 
 type CreateCustomerInput = {
@@ -34,6 +35,39 @@ class CustomerService extends MedusaCustomerService {
     } catch (e) {
       // avoid errors when backend first runs
     }
+  }
+
+  private async retrieveBySalesChannel_(
+    selector: MedusaSelector<Customer>,
+    config: FindConfig<Customer> = {}
+  ): Promise<Customer | never> {
+    const customerRepo = this.activeManager_.withRepository(
+      this.customerRepository_
+    )
+    const query = buildQuery(selector, config)
+    const customer = await customerRepo.findOne(query)
+
+    if (!customer) {
+      const selectorConstraints = Object.entries(selector)
+        .map((key, value) => `${key}: ${value}`)
+        .join(", ")
+      throw new MedusaError(
+        MedusaError.Types.NOT_FOUND,
+        `Customer with ${selectorConstraints} was not found`
+      )
+    }
+
+    return customer
+  }
+
+  async retrieveRegisteredByEmailAndSalesChannel(
+    email: string,
+    config: FindConfig<Customer> = {}
+  ): Promise<Customer | never> {
+    return await this.retrieveBySalesChannel_(
+      { email: email.toLowerCase(), has_account: true, sales_channel_id: this.salesChannel_ },
+      config
+    )
   }
 
   async listByEmailAndSalesChannel(
