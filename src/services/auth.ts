@@ -11,7 +11,6 @@ type InjectedDependencies = {
 class AuthService extends MedusaAuthService {
   static LIFE_TIME = Lifetime.SCOPED
   protected readonly customerService_: CustomerService = null!; // add initialiser to overwrite from base AuthService
-  protected readonly salesChannel_: string | null = null;
 
   constructor( dependencies: InjectedDependencies ) {
     // @ts-expect-error prefer-rest-params
