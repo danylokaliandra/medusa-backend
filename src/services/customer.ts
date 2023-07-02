@@ -56,6 +56,19 @@ class CustomerService extends MedusaCustomerService {
     return customer
   }
 
+  async retrieveUnregisteredByEmailAndSalesChannel(
+    email: string,
+    sales_channel_id: string,
+    config: FindConfig<Customer> = {}
+  ): Promise<Customer | never> {
+    console.log("retrieveUnregisteredByEmailAndSalesChannel running...")
+    console.log("sales_channel_id: ", sales_channel_id)
+    return await this.retrieveBySalesChannel_(
+      { email: email.toLowerCase(), has_account: false, sales_channel_id: sales_channel_id },
+      config
+    )
+  }
+
   async retrieveRegisteredByEmailAndSalesChannel(
     email: string,
     config: FindConfig<Customer> = {}
@@ -128,6 +141,8 @@ class CustomerService extends MedusaCustomerService {
         customer.has_account = true
         delete customer.password
       }
+
+      console.log("Creating customer with props: ", customer.email, customer.has_account, customer.sales_channel_id)
 
       const created = customerRepository.create(customer)
       const result = await customerRepository.save(created)
