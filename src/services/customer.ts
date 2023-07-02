@@ -112,7 +112,7 @@ class CustomerService extends MedusaCustomerService {
       )
 
       customer.email = customer.email.toLowerCase()
-      customer.sales_channel_id = this.salesChannel_
+      if (!customer.sales_channel_id) { customer.sales_channel_id = this.salesChannel_ }
 
       const { email, password } = customer
 
