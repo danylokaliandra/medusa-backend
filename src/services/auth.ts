@@ -3,6 +3,7 @@ import { AuthenticateResult } from "@medusajs/medusa/dist/types/auth"
 import { Customer } from "../models/customer"
 import CustomerService from "../services/customer"
 import { AuthService as MedusaAuthService } from "@medusajs/medusa"
+import { debugLog } from "../scripts/debug"
 
 type InjectedDependencies = {
   customerService: CustomerService
@@ -38,6 +39,7 @@ class AuthService extends MedusaAuthService {
     email: string,
     password: string
   ): Promise<AuthenticateResult> {
+    debugLog("running authenticateCustomer", "email:", email, "password:", password)
     return await this.atomicPhase_(async (transactionManager) => {
       try {
         const sC = this.customerService_.updateBillingAddress_
