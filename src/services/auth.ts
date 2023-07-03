@@ -39,7 +39,8 @@ class AuthService extends MedusaAuthService {
     email: string,
     password: string
   ): Promise<AuthenticateResult> {
-    debugLog("running authenticateCustomer", "email:", email, "password:", password)
+    debugLog("authenticateCustomer running...")
+    debugLog("email:", email, "password:", password)
     return await this.atomicPhase_(async (transactionManager) => {
       try {
         const sC = this.customerService_.updateBillingAddress_

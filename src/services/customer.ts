@@ -5,6 +5,7 @@ import { CustomerService as MedusaCustomerService } from "@medusajs/medusa"
 import { Customer } from "../models/customer"
 import { buildQuery } from "@medusajs/medusa/dist/utils"
 import { CreateCustomerInput as MedusaCreateCustomerInput } from "@medusajs/medusa/dist/types/customers"
+import { debugLog } from "../scripts/debug"
 
 type CreateCustomerInput = {
   sales_channel_id?: string;
@@ -61,8 +62,8 @@ class CustomerService extends MedusaCustomerService {
     sales_channel_id: string,
     config: FindConfig<Customer> = {}
   ): Promise<Customer | never> {
-    console.log("retrieveUnregisteredByEmailAndSalesChannel running...")
-    console.log("sales_channel_id: ", sales_channel_id)
+    debugLog("retrieveUnregisteredByEmailAndSalesChannel running...")
+    debugLog("email:", email, "sales channel id:", sales_channel_id)
     return await this.retrieveBySalesChannel_(
       { email: email.toLowerCase(), has_account: false, sales_channel_id: sales_channel_id },
       config
@@ -73,6 +74,8 @@ class CustomerService extends MedusaCustomerService {
     email: string,
     config: FindConfig<Customer> = {}
   ): Promise<Customer | never> {
+    debugLog("retrieveRegisteredByEmailAndSalesChannel running...")
+    debugLog("email:", email, "sales channel id:", this.salesChannel_)
     return await this.retrieveBySalesChannel_(
       { email: email.toLowerCase(), has_account: true, sales_channel_id: this.salesChannel_ },
       config
@@ -84,6 +87,8 @@ class CustomerService extends MedusaCustomerService {
     salesChannelId: string,
     config: FindConfig<Customer> = { relations: [], skip: 0, take: 2 }
   ): Promise<Customer[]> {
+    debugLog("listByEmailAndSalesChannel running...")
+    debugLog("email:", email, "sales channel id:", salesChannelId)
     const filter: CustomerFilter = {
       email: email.toLowerCase(),
       sales_channel_id: salesChannelId,
@@ -103,8 +108,9 @@ class CustomerService extends MedusaCustomerService {
    * @param {object} customer - the customer to create
    * @return {Promise} the result of create
    */
-
   async create(customer: CreateCustomerInput): Promise<Customer> {
+    debugLog("customer.create running...")
+    debugLog("sales channel id:", this.salesChannel_)
     return await this.atomicPhase_(async (manager) => {
 
       const customerRepository = manager.withRepository(
@@ -142,7 +148,9 @@ class CustomerService extends MedusaCustomerService {
         delete customer.password
       }
 
-      console.log("Creating customer with props: ", customer.email, customer.has_account, customer.sales_channel_id)
+      //else (customer.has_account = false)
+
+      debugLog("calling customer.create with props:", "email:", customer.email, "has_account:", customer.has_account, "sales channel id:", customer.sales_channel_id)
 
       const created = customerRepository.create(customer)
       const result = await customerRepository.save(created)

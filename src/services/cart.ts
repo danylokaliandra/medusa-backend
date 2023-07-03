@@ -16,6 +16,7 @@ import { DeepPartial, EntityManager } from "typeorm"
 import SalesChannelFeatureFlag from "@medusajs/medusa/dist/loaders/feature-flags/sales-channels"
 import { isDefined, MedusaError } from "medusa-core-utils"
 import { setMetadata } from "@medusajs/medusa/dist/utils"
+import { debugLog } from "../scripts/debug"
 
 type InjectedDependencies = {
   customerService: CustomerService
@@ -48,9 +49,8 @@ class CartService extends MedusaCartService {
     sales_channel_id: string,
   ): Promise<Customer> {
     
-  	console.log("createOrFetchGuestCustomerFromEmailAndSalesChannel_ running...")
-  	console.log("email: ", email)
-  	console.log("sales channel id: ", sales_channel_id)
+  	debugLog("createOrFetchGuestCustomerFromEmailAndSalesChannel_ running...")
+  	debugLog("email:", email, "sales channel id:", sales_channel_id)
   	
     const validatedEmail = validateEmail(email)
     const salesChannelId = sales_channel_id
@@ -67,35 +67,29 @@ class CartService extends MedusaCartService {
       customer = await customerServiceTx.create({ email: validatedEmail, sales_channel_id: salesChannelId })
     }
 
-	/*console.log("Email:", email);
-	console.log("customerServiceTx:", customerServiceTx);
-	console.log("validatedEmail:", validatedEmail);
-	console.log("customer:", customer);*/
-
-    console.log("createOrFetchGuestCustomerFromEmail_ completed...")
+    debugLog("createOrFetchGuestCustomerFromEmailAndSalesChannel_ completed...")
     return customer
   }
 
   /**
-   * Creates a cart.
+   * Creates a cart. Extended from medusa core to 
+   * 
    * @param data - the data to create the cart with
    * @return the result of the create operation
    */
   async create(data: CartCreateProps): Promise<Cart | never> {
     return await this.atomicPhase_(
       async (transactionManager: EntityManager) => {
-        console.log("create cart function starting...")
+        debugLog("cart.create running...")
         const cartRepo = transactionManager.withRepository(this.cartRepository_)
         const addressRepo = transactionManager.withRepository(
           this.addressRepository_
         )
-        console.log("grabbing raw cart?...")
 
         const rawCart: DeepPartial<Cart> = {
           context: data.context ?? {},
         }
         
-        console.log("grabbing sales channel?...", rawCart)
         if (
           this.featureFlagRouter_.isFeatureEnabled(SalesChannelFeatureFlag.key)
         ) {
@@ -104,7 +98,6 @@ class CartService extends MedusaCartService {
           ).id
         }
 
-        console.log("grabbing customer details?...", data)
         if (data.customer_id) {
           const customer = await this.customerService_
             .withTransaction(transactionManager)
@@ -115,10 +108,9 @@ class CartService extends MedusaCartService {
           rawCart.email = customer?.email
         }
         
-        console.log(rawCart, data)
         if (!rawCart.email && data.email) {
-          console.log("prepping to call createOrFetchGuestCustomerFromEmailAndSalesChannel_ from cart create function...")
-          console.log(data.email, data.sales_channel_id)
+          debugLog("calling createOrFetchGuestCustomerFromEmailAndSalesChannel_ from cart.create function...")
+          debugLog("email", data.email, "sales channel id", data.sales_channel_id)
           const customer = await this.createOrFetchGuestCustomerFromEmailAndSalesChannel_(
             data.email, data.sales_channel_id
           )
@@ -229,7 +221,7 @@ class CartService extends MedusaCartService {
   async update(cartId: string, data: CartUpdateProps): Promise<Cart> {
     return await this.atomicPhase_(
       async (transactionManager: EntityManager) => {
-        console.log("starting update cart function")
+        debugLog("cart.update running...")
         const cartRepo = transactionManager.withRepository(this.cartRepository_)
         const relations = [
           "items",
@@ -257,20 +249,16 @@ class CartService extends MedusaCartService {
           relations.push("items.variant", "items.variant.product")
         }
 
-        console.log("data during update", data)
-
         const cart = await this.retrieve(cartId, {
           relations,
         })
-        console.log("cart before customer is created:")
-        console.log(cart)
 
         const originalCartCustomer = { ...(cart.customer ?? {}) }
         if (data.customer_id) {
           await this.updateCustomerId_(cart, data.customer_id)
         } else if (isDefined(data.email)) {
-          console.log("prepping to call createOrFetchGuestCustomerFromEmailAndSalesChannel_ from cart update function...")
-          console.log(data.email, cart.sales_channel_id)
+          debugLog("calling createOrFetchGuestCustomerFromEmailAndSalesChannel_ from cart.update function...")
+          debugLog("email", data.email, "sales channel id", cart.sales_channel_id)
           const customer = await this.createOrFetchGuestCustomerFromEmailAndSalesChannel_(
             data.email, cart.sales_channel_id
           )
@@ -278,9 +266,6 @@ class CartService extends MedusaCartService {
           cart.customer_id = customer.id
           cart.email = customer.email
         }
-        console.log("cart after customer is created:")
-        console.log(cart)
-
 
         if (isDefined(data.customer_id) || isDefined(data.region_id)) {
           await this.updateUnitPrices_(cart, data.region_id, data.customer_id)
