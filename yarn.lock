@@ -2247,11 +2247,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@medusajs/medusa-cli@npm:1.3.14":
-  version: 1.3.14
-  resolution: "@medusajs/medusa-cli@npm:1.3.14"
+"@medusajs/medusa-cli@npm:1.3.15":
+  version: 1.3.15
+  resolution: "@medusajs/medusa-cli@npm:1.3.15"
   dependencies:
-    "@medusajs/utils": 1.8.5
+    "@medusajs/utils": 1.9.0
     axios: ^0.21.4
     chalk: ^4.0.0
     configstore: 5.0.1
@@ -2273,7 +2273,6 @@ __metadata:
     regenerator-runtime: ^0.13.11
     resolve-cwd: ^3.0.0
     semver: ^7.3.8
-    sqlite3: ^5.0.2
     stack-trace: ^0.0.10
     ulid: ^2.3.0
     url: ^0.11.0
@@ -2281,7 +2280,7 @@ __metadata:
     yargs: ^15.3.1
   bin:
     medusa: cli.js
-  checksum: 3905c63fe58fd429ca679e7b1c246e7f3ca6c19a1e561e84946de1ac2e646c19135e5aba88a106c15a52c781f181fb97c3f6b1356c17e8ee814c19e5d880acb7
+  checksum: 293be434863c5d9a667e8c18498292fe1afcb63d05dd17b088980f6574b92005e07c12c06e2e380f9584894ff8aba5258635a1aa2f5e71c5f829174f367fc86b
   languageName: node
   linkType: hard
 
@@ -2337,13 +2336,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@medusajs/medusa@npm:1.11.0":
-  version: 1.11.0
-  resolution: "@medusajs/medusa@npm:1.11.0"
+"@medusajs/medusa@npm:1.12.0":
+  version: 1.12.0
+  resolution: "@medusajs/medusa@npm:1.12.0"
   dependencies:
-    "@medusajs/medusa-cli": 1.3.14
-    "@medusajs/modules-sdk": 1.8.6
-    "@medusajs/utils": 1.8.5
+    "@medusajs/medusa-cli": 1.3.15
+    "@medusajs/modules-sdk": 1.8.7
+    "@medusajs/utils": 1.9.0
     "@types/ioredis": ^4.28.10
     "@types/lodash": ^4.14.191
     awilix: ^8.0.0
@@ -2375,7 +2374,7 @@ __metadata:
     morgan: ^1.9.1
     multer: ^1.4.5-lts.1
     node-schedule: ^2.1.1
-    papaparse: ^5.3.2
+    papaparse: 5.3.2
     passport: ^0.6.0
     passport-http-bearer: ^1.0.1
     passport-jwt: ^4.0.1
@@ -2390,12 +2389,12 @@ __metadata:
     uuid: ^9.0.0
     winston: ^3.8.2
   peerDependencies:
-    "@medusajs/types": 1.8.6
+    "@medusajs/types": 1.8.7
     medusa-interfaces: 1.3.7
     typeorm: "*"
   bin:
     medusa: cli.js
-  checksum: 1f76f8f832963539355f02d8f68c61df7f8d0685955fffa002d773e3ff511712c4610eea4215ac686850335d75af82ca38ae47072216293b69d0c8c8f53d9c5b
+  checksum: 3958444b385f128c77bbba8b067bc7fb89dc8aa9026e4aa95c83a240806dfe0b72d339fa2be7af74074f595e984423df11b9bce0ba6031608c98dcb1f468db14
   languageName: node
   linkType: hard
 
@@ -2413,17 +2412,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@medusajs/modules-sdk@npm:1.8.6":
-  version: 1.8.6
-  resolution: "@medusajs/modules-sdk@npm:1.8.6"
+"@medusajs/modules-sdk@npm:1.8.7":
+  version: 1.8.7
+  resolution: "@medusajs/modules-sdk@npm:1.8.7"
   dependencies:
-    "@medusajs/types": 1.8.6
-    "@medusajs/utils": 1.8.5
+    "@medusajs/types": 1.8.7
+    "@medusajs/utils": 1.9.0
     awilix: ^8.0.0
     glob: 7.1.6
     medusa-telemetry: ^0.0.16
     resolve-cwd: ^3.0.0
-  checksum: 9934e5e6a7a7721c14b7ba0a93a92166dcbf15d35754ac9be07ed219608f05809e30df355ce1f6d50391f91670ab7f5e1a98e00cf19adc3d92a150c9d9057ccb
+  checksum: 3ce9313d6e58d56730f27f80a2548c72484aea97d0b2bca471f24e67d44ef3f0b14849329cc2db68e7667b007b39f2a56b77b40ebe76cde13588fa322c6a031f
   languageName: node
   linkType: hard
 
@@ -2434,10 +2433,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@medusajs/types@npm:1.8.6":
-  version: 1.8.6
-  resolution: "@medusajs/types@npm:1.8.6"
-  checksum: a86553cb8807405478b5cf5ead1a1276b4b287893d05adf5d2f6695be12bcbbeb79f0d4c77cfe9f4d5d40e4ce5c5621da407f53145548c6720748feb9c5c2359
+"@medusajs/types@npm:1.8.7":
+  version: 1.8.7
+  resolution: "@medusajs/types@npm:1.8.7"
+  checksum: ff8201f0987e466ee29204e1f910a2c577f417f1223b645518d38e9dc4121acb48fa0365ed0a5c720975fbc824161c9d6844f2c9dad56603f516479ef4e2d983
   languageName: node
   linkType: hard
 
@@ -2454,16 +2453,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@medusajs/utils@npm:1.8.5":
-  version: 1.8.5
-  resolution: "@medusajs/utils@npm:1.8.5"
+"@medusajs/utils@npm:1.9.0":
+  version: 1.9.0
+  resolution: "@medusajs/utils@npm:1.9.0"
   dependencies:
     awilix: ^8.0.0
-    class-transformer: ^0.5.1
-    class-validator: ^0.14.0
-    typeorm: ^0.3.16
     ulid: ^2.3.0
-  checksum: 568a82fbc146da1fed6dd66707c3f425053bad30b367995eeb027bc5492fe1aa6c9f33576e77bb8ba31eea4d425cb36d4c023ddb469a9d703cc8ee3650208a9d
+  checksum: c82a0a0b09767f81dd8112c5b3d1a40fc45154c03ee38fe1dfdac46a828d594c4fd6a5a7d479f88cd979c51640cf8fbf02647f452fa31cffb7dcca243768b7da
   languageName: node
   linkType: hard
 
@@ -9898,7 +9894,7 @@ __metadata:
     "@medusajs/cache-redis": ^1.8.4
     "@medusajs/event-bus-local": ^1.9.1
     "@medusajs/event-bus-redis": ^1.8.4
-    "@medusajs/medusa": 1.11.0
+    "@medusajs/medusa": 1.12.0
     "@medusajs/medusa-cli": ^1.3.12
     "@types/express": ^4.17.13
     "@types/jest": ^27.4.0
@@ -10860,10 +10856,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"papaparse@npm:^5.3.2":
-  version: 5.4.1
-  resolution: "papaparse@npm:5.4.1"
-  checksum: fc9e52f7158dca3517c229e3309065b1ab5da6c7194572fba4f31ff138bc43e3c91182cc40365cc828f97fe10d0aca416068fd731661058bea0f69ddb84a411a
+"papaparse@npm:5.3.2":
+  version: 5.3.2
+  resolution: "papaparse@npm:5.3.2"
+  checksum: a5950ef931a42f6759a8d3823a43dd30f375b37a0ddea6ea5448c0c5024cd226819231958c49c24fbcdeab297c63fd1d630130b3439876ea0fd17d8a267738ae
   languageName: node
   linkType: hard
 
