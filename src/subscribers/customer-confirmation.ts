@@ -26,20 +26,22 @@ class CustomerConfirmationSubscriber {
   }
 
   handleCustomerConfirmation = async (data: Customer) => {
-    this.sendGridService.sendEmail({
-      templateId: SENDGRID_CUSTOMER_CONFIRMATION,
-      from: SENDGRID_FROM,
-      to: data.email,
-      dynamic_template_data: {
-        email: data.email,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        store_url: STORE_URL,
-        store_name: STORE_NAME,
-        store_logo: STORE_LOGO
-        /*data*/ /* add in to see the full data object returned by the event */
-      },
-    })
+    if (data.has_account) (
+      this.sendGridService.sendEmail({
+        templateId: SENDGRID_CUSTOMER_CONFIRMATION,
+        from: SENDGRID_FROM,
+        to: data.email,
+        dynamic_template_data: {
+          email: data.email,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          store_url: STORE_URL,
+          store_name: STORE_NAME,
+          store_logo: STORE_LOGO
+          /*data*/ /* add in to see the full data object returned by the event */
+        },
+      })
+    )
   }
 }
 
