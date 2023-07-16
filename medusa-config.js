@@ -86,12 +86,12 @@ const plugins = [
     options: {
       api_key: SENDGRID_API_KEY,
       from: SENDGRID_FROM,
-      order_placed_template: SENDGRID_ORDER_PLACED,
       order_canceled_template: SENDGRID_ORDER_CANCELED,
       order_shipped_template: SENDGRID_ORDER_SHIPPED,
       gift_card_created_template: SENDGRID_GIFT_CARD_CREATED,
       medusa_restock_template: SENDGRID_MEDUSA_RESTOCK
       /* removed to extend the subscribers
+      order_placed_template: SENDGRID_ORDER_PLACED,
       user_password_reset_template: SENDGRID_USER_PASSWORD_RESET,
       customer_password_reset_template: SENDGRID_CUSTOMER_PASSWORD_RESET,*/
       /* removed as not needed
