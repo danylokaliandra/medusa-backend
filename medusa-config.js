@@ -55,19 +55,6 @@ const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
 // SENDGRID
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 const SENDGRID_FROM = process.env.SENDGRID_FROM;
-const SENDGRID_ORDER_PLACED = process.env.SENDGRID_ORDER_PLACED;
-const SENDGRID_ORDER_CANCELED = process.env.SENDGRID_ORDER_CANCELED;
-const SENDGRID_ORDER_SHIPPED = process.env.SENDGRID_ORDER_SHIPPED;
-const SENDGRID_ORDER_RETURN_REQUESTED = process.env.SENDGRID_ORDER_RETURN_REQUESTED;
-const SENDGRID_ORDER_ITEMS_RETURNED = process.env.SENDGRID_ORDER_ITEMS_RETURNED;
-const SENDGRID_CLAIM_SHIPMENT_CREATED = process.env.SENDGRID_CLAIM_SHIPMENT_CREATED;
-const SENDGRID_SWAP_CREATED = process.env.SENDGRID_SWAP_CREATED;
-const SENDGRID_SWAP_SHIPMENT_CREATED = process.env.SENDGRID_SWAP_SHIPMENT_CREATED;
-const SENDGRID_SWAP_RECEIVED = process.env.SENDGRID_SWAP_RECEIVED;
-const SENDGRID_GIFT_CARD_CREATED = process.env.SENDGRID_GIFT_CARD_CREATED;
-const SENDGRID_CUSTOMER_PASSWORD_RESET = process.env.SENDGRID_CUSTOMER_PASSWORD_RESET;
-const SENDGRID_USER_PASSWORD_RESET = process.env.SENDGRID_USER_PASSWORD_RESET;
-const SENDGRID_MEDUSA_RESTOCK = process.env.SENDGRID_MEDUSA_RESTOCK;
 
 // PLUGINS
 const plugins = [
@@ -86,21 +73,6 @@ const plugins = [
     options: {
       api_key: SENDGRID_API_KEY,
       from: SENDGRID_FROM,
-      order_canceled_template: SENDGRID_ORDER_CANCELED,
-      order_shipped_template: SENDGRID_ORDER_SHIPPED,
-      gift_card_created_template: SENDGRID_GIFT_CARD_CREATED,
-      medusa_restock_template: SENDGRID_MEDUSA_RESTOCK
-      /* removed to extend the subscribers
-      order_placed_template: SENDGRID_ORDER_PLACED,
-      user_password_reset_template: SENDGRID_USER_PASSWORD_RESET,
-      customer_password_reset_template: SENDGRID_CUSTOMER_PASSWORD_RESET,*/
-      /* removed as not needed
-      order_return_requested_template: SENDGRID_ORDER_RETURN_REQUESTED,
-      order_items_returned_template: SENDGRID_ORDER_ITEMS_RETURNED,
-      claim_shipment_created_template: SENDGRID_CLAIM_SHIPMENT_CREATED,
-      swap_created_template: SENDGRID_SWAP_CREATED,
-      swap_shipment_created_template: SENDGRID_SWAP_SHIPMENT_CREATED,
-      swap_received_template: SENDGRID_SWAP_RECEIVED,*/
     },
   },
   // File service storage - the LAST plugin declared will be used

@@ -1,6 +1,6 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
 
-const SENDGRID_ORDER_PLACED = process.env.SENDGRID_ORDER_PLACED
+const SENDGRID_ORDER_CANCELED = process.env.SENDGRID_ORDER_CANCELED
 const SENDGRID_FROM = process.env.SENDGRID_FROM
 const STORE_URL = process.env.STORE_URL
 const STORE_NAME = process.env.STORE_NAME
@@ -12,7 +12,7 @@ type InjectedDependencies = {
   sendgridService: any
 }
 
-class OrderPlacedSubscriber {
+class OrderCanceledSubscriber {
   protected readonly orderService_: OrderService
   protected sendGridService: any
 
@@ -24,34 +24,23 @@ class OrderPlacedSubscriber {
     this.orderService_ = orderService
     this.sendGridService = sendgridService
     eventBusService.subscribe(
-      "order.placed", 
-      this.handleOrderPlaced
+      "order.canceled", 
+      this.handleOrderCanceled
     )
   }
 
-  handleOrderPlaced = async (data: Record<string, any>) => {
-    const order = await this.orderService_.retrieveWithTotals(data.id, {
-      relations: ["items", "customer", "shipping_address"],
+  handleOrderCanceled = async (data: Record<string, any>) => {
+    const order = await this.orderService_.retrieve(data.id, {
+      relations: ["customer"],
     })
   	this.sendGridService.sendEmail({
-  	  templateId: SENDGRID_ORDER_PLACED,
+  	  templateId: SENDGRID_ORDER_CANCELED,
   	  from: SENDGRID_FROM,
   	  to: order.email,
   	  dynamic_template_data: {
   	    order_id: order.display_id,
         order_date: new Date(order.created_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),
-  	    status: order.status,
   	    customer: order.customer,
-  	    items: order.items.map((item) => ({
-          title: item.title,
-          quantity: item.quantity,
-          total: (item.total / 100).toFixed(2),
-        })),
-  	    shipping_address: order.shipping_address,
-        subtotal: (order.subtotal / 100).toFixed(2),
-        shipping_total: (order.shipping_total / 100).toFixed(2),
-        tax_total: (order.tax_total / 100).toFixed(2),
-        total: (order.total / 100).toFixed(2),
   	    store_url: STORE_URL,
   	    store_name: STORE_NAME,
   	    store_logo: STORE_LOGO,
@@ -61,4 +50,4 @@ class OrderPlacedSubscriber {
   }
 }
 
-export default OrderPlacedSubscriber
+export default OrderCanceledSubscriber
