@@ -40,7 +40,6 @@ class OrderShippedSubscriber {
     const fulfillment = await this.fulfillmentService_.retrieve(data.fulfillment_id, {
       relations: ["items", "tracking_links"],
     })
-    console.log("fulfillment:",fulfillment)
     if (!data.no_notification) ( // do not send if notifications suppressed
       this.sendGridService.sendEmail({
         templateId: SENDGRID_ORDER_SHIPPED,

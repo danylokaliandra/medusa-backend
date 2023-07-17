@@ -30,11 +30,9 @@ class OrderPlacedSubscriber {
   }
 
   handleOrderPlaced = async (data: Record<string, any>) => {
-	// console.log("handleOrderPlaced")
     const order = await this.orderService_.retrieveWithTotals(data.id, {
       relations: ["items", "customer", "shipping_address"],
     })
-    // console.log("order:", order)
   	this.sendGridService.sendEmail({
   	  templateId: SENDGRID_ORDER_PLACED,
   	  from: SENDGRID_FROM,
