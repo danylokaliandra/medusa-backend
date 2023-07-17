@@ -1,6 +1,6 @@
 import { EventBusService } from "@medusajs/medusa"
 
-const SENDGRID_INVITE_USER = process.env.SENDGRID_INVITE_USER
+const SENDGRID_USER_PASSWORD_RESET = process.env.SENDGRID_USER_PASSWORD_RESET
 const SENDGRID_FROM = process.env.SENDGRID_FROM
 const ADMIN_URL = process.env.ADMIN_URL
 
@@ -9,7 +9,7 @@ type InjectedDependencies = {
   sendgridService: any
 }
 
-class InviteSubscriber {
+class UserPasswordResetSubscriber {
   protected sendGridService: any
 
   constructor({ 
@@ -18,19 +18,19 @@ class InviteSubscriber {
   }: InjectedDependencies) {
     this.sendGridService = sendgridService
     eventBusService.subscribe(
-      "invite.created", 
-      this.handleInvite
+      "user.password_reset", 
+      this.handleUserPasswordReset
     )
   }
 
-  handleInvite = async (data: Record<string, any>) => {
+  handleUserPasswordReset = async (data: Record<string, any>) => {
     this.sendGridService.sendEmail({
-      templateId: SENDGRID_INVITE_USER,
+      templateId: SENDGRID_USER_PASSWORD_RESET,
       from: SENDGRID_FROM,
-      to: data.user_email,
+      to: data.email,
       dynamic_template_data: {
         token: data.token,
-        user_email: data.user_email,
+        user_email: data.email,
         admin_url: ADMIN_URL
         /*data*/ /* add in to see the full data object returned by the event */
       }
@@ -38,4 +38,4 @@ class InviteSubscriber {
   }
 }
 
-export default InviteSubscriber
+export default UserPasswordResetSubscriber
