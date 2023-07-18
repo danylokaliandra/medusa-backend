@@ -3,9 +3,12 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// grab environment variables
-const envFile = process.env.NODE_ENV === 'development' ? '../../.env' : `../../.env.${process.env.NODE_ENV}`;
-const envPath = path.resolve(__dirname, envFile);
+// Project Directory
+const projectDir = path.resolve(__dirname, '../..');
+
+// Grab environment variables
+const envFile = process.env.NODE_ENV === 'development' ? '.env' : `.env.${process.env.NODE_ENV}`;
+const envPath = path.resolve(projectDir, envFile);
 if (!fs.existsSync(envPath)) {
   console.error(`Environment file ${envFile} does not exist.`);
   process.exit(1);
