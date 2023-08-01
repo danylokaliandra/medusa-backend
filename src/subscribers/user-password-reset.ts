@@ -1,4 +1,5 @@
 import { EventBusService } from "@medusajs/medusa"
+import { debugLog } from "../scripts/debug"
 
 const SENDGRID_USER_PASSWORD_RESET = process.env.SENDGRID_USER_PASSWORD_RESET
 const SENDGRID_FROM = process.env.SENDGRID_FROM
@@ -24,6 +25,10 @@ class UserPasswordResetSubscriber {
   }
 
   handleUserPasswordReset = async (data: Record<string, any>) => {
+    debugLog("handleUserPasswordReset running...")
+    debugLog("using template ID:", SENDGRID_USER_PASSWORD_RESET)
+    debugLog("using ADMIN_URL value:", ADMIN_URL)
+    debugLog("sending email to:", data.email)
     this.sendGridService.sendEmail({
       templateId: SENDGRID_USER_PASSWORD_RESET,
       from: SENDGRID_FROM,
