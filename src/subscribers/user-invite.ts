@@ -26,6 +26,8 @@ class InviteSubscriber {
 
   handleInvite = async (data: Record<string, any>) => {
     debugLog("handleInvite running...")
+    debugLog("using ADMIN_URL value:", ADMIN_URL)
+    debugLog("using template ID:", SENDGRID_USER_INVITE)
     debugLog("sending email to:", data.user_email)
     this.sendGridService.sendEmail({
       templateId: SENDGRID_USER_INVITE,
