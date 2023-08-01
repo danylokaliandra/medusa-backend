@@ -1,4 +1,6 @@
 import { EventBusService, OrderService, FulfillmentService } from "@medusajs/medusa"
+import { debugLog } from "../scripts/debug"
+
 
 const SENDGRID_ORDER_SHIPPED = process.env.SENDGRID_ORDER_SHIPPED
 const SENDGRID_FROM = process.env.SENDGRID_FROM
@@ -40,7 +42,9 @@ class OrderShippedSubscriber {
     const fulfillment = await this.fulfillmentService_.retrieve(data.fulfillment_id, {
       relations: ["items", "tracking_links"],
     })
+    debugLog("handleOrderShipped running...")
     if (!data.no_notification) ( // do not send if notifications suppressed
+      debugLog("notifications on, sending email to:", order.email),
       this.sendGridService.sendEmail({
         templateId: SENDGRID_ORDER_SHIPPED,
         from: SENDGRID_FROM,

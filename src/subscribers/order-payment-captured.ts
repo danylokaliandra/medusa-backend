@@ -1,4 +1,5 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
+import { debugLog } from "../scripts/debug"
 
 const SENDGRID_ORDER_PAID = process.env.SENDGRID_ORDER_PAID
 const SENDGRID_FROM = process.env.SENDGRID_FROM
@@ -33,7 +34,9 @@ class OrderPaymentCapturedSubscriber {
     const order = await this.orderService_.retrieve(data.id, {
       relations: ["customer", "shipping_address"],
     })
+    debugLog("handleOrderPaymentCaptured running...")
     if (!data.no_notification) ( // do not send if notifications suppressed
+      debugLog("notifications on, sending email to:", order.email),
       this.sendGridService.sendEmail({
         templateId: SENDGRID_ORDER_PAID,
         from: SENDGRID_FROM,

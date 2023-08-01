@@ -1,4 +1,5 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
+import { debugLog } from "../scripts/debug"
 
 const SENDGRID_ORDER_CANCELED = process.env.SENDGRID_ORDER_CANCELED
 const SENDGRID_FROM = process.env.SENDGRID_FROM
@@ -33,6 +34,8 @@ class OrderCanceledSubscriber {
     const order = await this.orderService_.retrieve(data.id, {
       relations: ["customer"],
     })
+    debugLog("handleOrderCanceled running...")
+    debugLog("sending email to:", order.email)
   	this.sendGridService.sendEmail({
   	  templateId: SENDGRID_ORDER_CANCELED,
   	  from: SENDGRID_FROM,

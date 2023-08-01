@@ -1,4 +1,5 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
+import { debugLog } from "../scripts/debug"
 
 const SENDGRID_ORDER_PLACED = process.env.SENDGRID_ORDER_PLACED
 const SENDGRID_FROM = process.env.SENDGRID_FROM
@@ -33,6 +34,8 @@ class OrderPlacedSubscriber {
     const order = await this.orderService_.retrieveWithTotals(data.id, {
       relations: ["items", "customer", "shipping_address"],
     })
+    debugLog("handleOrderPlaced running...")
+    debugLog("sending email to:", order.email)
   	this.sendGridService.sendEmail({
   	  templateId: SENDGRID_ORDER_PLACED,
   	  from: SENDGRID_FROM,

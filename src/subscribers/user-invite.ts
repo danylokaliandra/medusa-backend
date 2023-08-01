@@ -1,4 +1,5 @@
 import { EventBusService } from "@medusajs/medusa"
+import { debugLog } from "../scripts/debug"
 
 const SENDGRID_USER_INVITE = process.env.SENDGRID_USER_INVITE
 const SENDGRID_FROM = process.env.SENDGRID_FROM
@@ -24,6 +25,8 @@ class InviteSubscriber {
   }
 
   handleInvite = async (data: Record<string, any>) => {
+    debugLog("handleInvite running...")
+    debugLog("sending email to:", data.user_email)
     this.sendGridService.sendEmail({
       templateId: SENDGRID_USER_INVITE,
       from: SENDGRID_FROM,
