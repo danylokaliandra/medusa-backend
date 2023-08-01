@@ -35,6 +35,8 @@ class OrderPlacedSubscriber {
       relations: ["items", "customer", "shipping_address"],
     })
     debugLog("handleOrderPlaced running...")
+    debugLog("using template ID:", SENDGRID_ORDER_PLACED)
+    debugLog("using STORE_URL value:", STORE_URL)
     debugLog("sending email to:", order.email)
   	this.sendGridService.sendEmail({
   	  templateId: SENDGRID_ORDER_PLACED,

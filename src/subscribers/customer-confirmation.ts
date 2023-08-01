@@ -29,7 +29,10 @@ class CustomerConfirmationSubscriber {
   handleCustomerConfirmation = async (data: Customer) => {
     debugLog("handleCustomerConfirmation running...")
     if (data.has_account) (
-      debugLog("customer has account, sending email to:", data.email),
+      debugLog("customer has account..."),
+      debugLog("using template ID:", SENDGRID_CUSTOMER_CONFIRMATION),
+      debugLog("using STORE_URL value:", STORE_URL),
+      debugLog("sending email to:", data.email),
       this.sendGridService.sendEmail({
         templateId: SENDGRID_CUSTOMER_CONFIRMATION,
         from: SENDGRID_FROM,

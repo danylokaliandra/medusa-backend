@@ -28,6 +28,8 @@ class CustomerPasswordResetSubscriber {
 
   handleCustomerPasswordReset = async (data: Record<string, any>) => {
     debugLog("handleCustomerPasswordReset running...")
+    debugLog("using template ID:", SENDGRID_CUSTOMER_PASSWORD_RESET)
+    debugLog("using STORE_URL value:", STORE_URL)
     debugLog("sending email to:", data.email)
     this.sendGridService.sendEmail({
       templateId: SENDGRID_CUSTOMER_PASSWORD_RESET,

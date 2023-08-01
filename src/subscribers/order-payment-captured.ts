@@ -36,7 +36,10 @@ class OrderPaymentCapturedSubscriber {
     })
     debugLog("handleOrderPaymentCaptured running...")
     if (!data.no_notification) ( // do not send if notifications suppressed
-      debugLog("notifications on, sending email to:", order.email),
+      debugLog("notifications on..."),
+      debugLog("using template ID:", SENDGRID_ORDER_PAID),
+      debugLog("using STORE_URL value:", STORE_URL),
+      debugLog("sending email to:", order.email),
       this.sendGridService.sendEmail({
         templateId: SENDGRID_ORDER_PAID,
         from: SENDGRID_FROM,

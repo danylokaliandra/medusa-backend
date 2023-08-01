@@ -35,6 +35,8 @@ class OrderCanceledSubscriber {
       relations: ["customer"],
     })
     debugLog("handleOrderCanceled running...")
+    debugLog("using template ID:", SENDGRID_ORDER_CANCELED)
+    debugLog("using STORE_URL value:", STORE_URL)
     debugLog("sending email to:", order.email)
   	this.sendGridService.sendEmail({
   	  templateId: SENDGRID_ORDER_CANCELED,
