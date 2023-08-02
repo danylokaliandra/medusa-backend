@@ -60,7 +60,10 @@ class CustomerConfirmationSubscriber {
       if (!profiles.data.length) {
         debugLog("Klaviyo profile does not exist, creating...")
         const newProfile = {
-          email: data.email
+          email: data.email,
+          properties: {
+            store_name: STORE_NAME
+          }
           // first_name: data.first_name,
           // last_name: data.last_name
           // Add more attributes if needed

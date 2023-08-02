@@ -13,7 +13,8 @@ const klaviyoRequest = async (method: HttpMethod, endpoint: string, params?: any
   debugLog("method:", method);
   debugLog("endpoint:", endpoint);
   debugLog("params:", params);
-  debugLog("body:", body);
+  debugLog("body:", JSON.stringify(body, null, 2));
+
   try {
   const response = await axios({
     method: method,
@@ -47,10 +48,40 @@ export const createProfile = (profileData: any) => klaviyoRequest('POST', 'profi
   }
 });
 
-// Create an Event (e.g. Order Submitted)
-export const createEvent = (eventData: any) => klaviyoRequest('POST', 'events/', undefined, {
-  data: {
-    type: "event",
-    attributes: eventData
-  }
-});
+// Create an Event (e.g. Placed Order)
+export const createEvent = async (
+  metricName: string, 
+  email: any, 
+  value: string, 
+  properties: any
+) => {
+  const eventPayload = {
+    data: {
+      type: "event",
+      attributes: {
+        properties: properties,
+        time: new Date().toISOString(),
+        value: value,
+        metric: {
+          data: {
+            type: "metric",
+            attributes: {
+              name: metricName
+            }
+          }
+        },
+        profile: {
+          data: {
+            type: "profile",
+            attributes: {
+              email: email
+            }
+
+          }
+        }
+      }
+    }
+  };
+  debugLog("Event request payload:", JSON.stringify(eventPayload, null, 2));
+  return klaviyoRequest('POST', 'events/', undefined, eventPayload);
+};

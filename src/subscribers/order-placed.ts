@@ -1,5 +1,6 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
 import { debugLog } from "../scripts/debug"
+import { getProfileByEmail, createEvent } from "../scripts/klaviyo"
 
 const SENDGRID_ORDER_PLACED = process.env.SENDGRID_ORDER_PLACED
 const SENDGRID_FROM = process.env.SENDGRID_FROM
@@ -35,34 +36,58 @@ class OrderPlacedSubscriber {
       relations: ["items", "customer", "shipping_address"],
     })
     debugLog("handleOrderPlaced running...")
+    this.sendOrderConfirmationEmail(order)
+    this.updateKlaviyo(order)
+  }
+
+  // SendGrid Handler
+  sendOrderConfirmationEmail = (order: any) => {
+    debugLog("sending email to:", order.email)
     debugLog("using template ID:", SENDGRID_ORDER_PLACED)
     debugLog("using STORE_URL value:", STORE_URL)
-    debugLog("sending email to:", order.email)
-  	this.sendGridService.sendEmail({
-  	  templateId: SENDGRID_ORDER_PLACED,
-  	  from: SENDGRID_FROM,
-  	  to: order.email,
-  	  dynamic_template_data: {
-  	    order_id: order.display_id,
+    this.sendGridService.sendEmail({
+      templateId: SENDGRID_ORDER_PLACED,
+      from: SENDGRID_FROM,
+      to: order.email,
+      dynamic_template_data: {
+        order_id: order.display_id,
         order_date: new Date(order.created_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),
-  	    status: order.status,
-  	    customer: order.customer,
-  	    items: order.items.map((item) => ({
+        status: order.status,
+        customer: order.customer,
+        items: order.items.map((item) => ({
           title: item.title,
           quantity: item.quantity,
           total: (item.total / 100).toFixed(2),
         })),
-  	    shipping_address: order.shipping_address,
+        shipping_address: order.shipping_address,
         subtotal: (order.subtotal / 100).toFixed(2),
         shipping_total: (order.shipping_total / 100).toFixed(2),
         tax_total: (order.tax_total / 100).toFixed(2),
         total: (order.total / 100).toFixed(2),
-  	    store_url: STORE_URL,
-  	    store_name: STORE_NAME,
-  	    store_logo: STORE_LOGO,
-  	    /*data*/ /* add in to see the full data object returned by the event */
-  	  }
-  	})
+        store_url: STORE_URL,
+        store_name: STORE_NAME,
+        store_logo: STORE_LOGO,
+        /*data*/ /* add in to see the full data object returned by the event */
+      }
+    })    
+  }
+
+  // Klaviyo Handler
+  updateKlaviyo = async (order: any) => {
+    debugLog("creating Order Placed event in Klaviyo...")
+
+    try {
+      const orderProperties = {
+        store_name: STORE_NAME,
+        order: order
+        // ... [Add other properties as needed]
+      }
+
+      await createEvent("Placed Order", order.email, (order.total / 100).toFixed(2), orderProperties)
+      debugLog("'Placed Order' event created successfully in Klaviyo.")
+    } catch (error) {
+      console.error("Error creating Klaviyo event:", error.message)
+    }
   }
 }
 
