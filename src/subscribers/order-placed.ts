@@ -74,7 +74,7 @@ class OrderPlacedSubscriber {
 
   // Klaviyo Event Handler
   klaviyoEvent = async (order: any) => {
-    debugLog("creating Order Placed event in Klaviyo...")
+    debugLog("creating event in Klaviyo...")
 
     try {
       const orderProperties = {
