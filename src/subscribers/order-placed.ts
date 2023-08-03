@@ -1,6 +1,6 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
-import { debugLog } from "../scripts/debug"
 import { getProfileByEmail, createEvent } from "../scripts/klaviyo"
+import { debugLog } from "../scripts/debug"
 
 const SENDGRID_ORDER_PLACED = process.env.SENDGRID_ORDER_PLACED
 const SENDGRID_FROM = process.env.SENDGRID_FROM
@@ -36,12 +36,12 @@ class OrderPlacedSubscriber {
       relations: ["items", "customer", "shipping_address"],
     })
     debugLog("handleOrderPlaced running...")
-    this.sendOrderConfirmationEmail(order)
-    this.updateKlaviyo(order)
+    this.sendgridEmail(order)
+    this.klaviyoEvent(order)
   }
 
-  // SendGrid Handler
-  sendOrderConfirmationEmail = (order: any) => {
+  // SendGrid Email Handler
+  sendgridEmail = (order: any) => {
     debugLog("sending email to:", order.email)
     debugLog("using template ID:", SENDGRID_ORDER_PLACED)
     debugLog("using STORE_URL value:", STORE_URL)
@@ -72,8 +72,8 @@ class OrderPlacedSubscriber {
     })    
   }
 
-  // Klaviyo Handler
-  updateKlaviyo = async (order: any) => {
+  // Klaviyo Event Handler
+  klaviyoEvent = async (order: any) => {
     debugLog("creating Order Placed event in Klaviyo...")
 
     try {
