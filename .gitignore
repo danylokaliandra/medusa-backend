@@ -10,7 +10,6 @@
 **/uploads
 **/build
 **/z_*/
-**/.cache
 
 # environment variable files
 **/.env*
