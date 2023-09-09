@@ -1,12 +1,9 @@
 import { EventBusService, OrderService, FulfillmentService } from "@medusajs/medusa"
+import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
-
 
 const SENDGRID_ORDER_SHIPPED = process.env.SENDGRID_ORDER_SHIPPED
 const SENDGRID_FROM = process.env.SENDGRID_FROM
-const STORE_URL = process.env.STORE_URL
-const STORE_NAME = process.env.STORE_NAME
-const STORE_LOGO = process.env.STORE_LOGO
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
@@ -37,16 +34,18 @@ class OrderShippedSubscriber {
 
   handleOrderShipped = async (data: Record<string, any>) => {
     const order = await this.orderService_.retrieve(data.id, {
-      relations: ["items", "customer", "shipping_address"],
+      relations: ["items", "customer", "shipping_address", "sales_channel"],
     })
     const fulfillment = await this.fulfillmentService_.retrieve(data.fulfillment_id, {
       relations: ["items", "tracking_links"],
     })
+    const { store_name, store_url } = getStoreDetails(order.sales_channel);
     debugLog("handleOrderShipped running...")
     if (!data.no_notification) ( // do not send if notifications suppressed
       debugLog("notifications on..."),
       debugLog("using template ID:", SENDGRID_ORDER_SHIPPED),
-      debugLog("using STORE_URL value:", STORE_URL),
+      debugLog("using store_name:", store_name),
+      debugLog("using store_url:", store_url),
       debugLog("sending email to:", order.email),
       this.sendGridService.sendEmail({
         templateId: SENDGRID_ORDER_SHIPPED,
@@ -65,9 +64,9 @@ class OrderShippedSubscriber {
           order_fulfillment: fulfillment,
           shipping_address: order.shipping_address,
           tracking_numbers: fulfillment.tracking_numbers,
-          store_url: STORE_URL,
-          store_name: STORE_NAME,
-          store_logo: STORE_LOGO,
+          store_name: store_name,
+          store_url: store_url,
+          store_logo: store_url + "/favicon.ico",
           /*data*/ /* add in to see the full data object returned by the event */
         }
       })

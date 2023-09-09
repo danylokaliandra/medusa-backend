@@ -1,15 +1,13 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
+import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
 
 const SENDGRID_ORDER_CANCELED = process.env.SENDGRID_ORDER_CANCELED
 const SENDGRID_FROM = process.env.SENDGRID_FROM
-const STORE_URL = process.env.STORE_URL
-const STORE_NAME = process.env.STORE_NAME
-const STORE_LOGO = process.env.STORE_LOGO
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
-  orderService: OrderService
+  orderService: OrderService,
   sendgridService: any
 }
 
@@ -32,26 +30,28 @@ class OrderCanceledSubscriber {
 
   handleOrderCanceled = async (data: Record<string, any>) => {
     const order = await this.orderService_.retrieve(data.id, {
-      relations: ["customer"],
+      relations: ["customer", "sales_channel"],
     })
+    const { store_name, store_url } = getStoreDetails(order.sales_channel);
     debugLog("handleOrderCanceled running...")
     debugLog("using template ID:", SENDGRID_ORDER_CANCELED)
-    debugLog("using STORE_URL value:", STORE_URL)
+    debugLog("using store_name:", store_name)
+    debugLog("using store_url:", store_url)
     debugLog("sending email to:", order.email)
-  	this.sendGridService.sendEmail({
-  	  templateId: SENDGRID_ORDER_CANCELED,
-  	  from: SENDGRID_FROM,
-  	  to: order.email,
-  	  dynamic_template_data: {
-  	    order_id: order.display_id,
+    this.sendGridService.sendEmail({
+      templateId: SENDGRID_ORDER_CANCELED,
+      from: SENDGRID_FROM,
+      to: order.email,
+      dynamic_template_data: {
+        order_id: order.display_id,
         order_date: new Date(order.created_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),
-  	    customer: order.customer,
-  	    store_url: STORE_URL,
-  	    store_name: STORE_NAME,
-  	    store_logo: STORE_LOGO,
-  	    /*data*/ /* add in to see the full data object returned by the event */
-  	  }
-  	})
+        customer: order.customer,
+        store_name: store_name,
+        store_url: store_url,
+        store_logo: store_url + "/favicon.ico",
+        /*data*/ /* add in to see the full data object returned by the event */
+      }
+    })
   }
 }
 

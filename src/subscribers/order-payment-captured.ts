@@ -1,11 +1,9 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
+import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
 
 const SENDGRID_ORDER_PAID = process.env.SENDGRID_ORDER_PAID
 const SENDGRID_FROM = process.env.SENDGRID_FROM
-const STORE_URL = process.env.STORE_URL
-const STORE_NAME = process.env.STORE_NAME
-const STORE_LOGO = process.env.STORE_LOGO
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
@@ -32,13 +30,15 @@ class OrderPaymentCapturedSubscriber {
 
   handleOrderPaymentCaptured = async (data: Record<string, any>) => {
     const order = await this.orderService_.retrieve(data.id, {
-      relations: ["customer", "shipping_address"],
+      relations: ["customer", "shipping_address", "sales_channel"],
     })
+    const { store_name, store_url } = getStoreDetails(order.sales_channel);
     debugLog("handleOrderPaymentCaptured running...")
     if (!data.no_notification) ( // do not send if notifications suppressed
       debugLog("notifications on..."),
       debugLog("using template ID:", SENDGRID_ORDER_PAID),
-      debugLog("using STORE_URL value:", STORE_URL),
+      debugLog("using store name:", store_name),
+      debugLog("using store url:", store_url),
       debugLog("sending email to:", order.email),
       this.sendGridService.sendEmail({
         templateId: SENDGRID_ORDER_PAID,
@@ -50,9 +50,9 @@ class OrderPaymentCapturedSubscriber {
           status: order.status,
           customer: order.customer,
           shipping_address: order.shipping_address,
-          store_url: STORE_URL,
-          store_name: STORE_NAME,
-          store_logo: STORE_LOGO,
+          store_name: store_name,
+          store_url: store_url,
+          store_logo: store_url + "/favicon.ico",
           /*data*/ /* add in to see the full data object returned by the event */
         }
       })
