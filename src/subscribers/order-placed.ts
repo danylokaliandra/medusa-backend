@@ -1,16 +1,14 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
-import { getProfileByEmail, createEvent } from "../scripts/klaviyo"
+import { createEvent } from "../scripts/klaviyo"
+import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
 
 const SENDGRID_ORDER_PLACED = process.env.SENDGRID_ORDER_PLACED
 const SENDGRID_FROM = process.env.SENDGRID_FROM
-const STORE_URL = process.env.STORE_URL
-const STORE_NAME = process.env.STORE_NAME
-const STORE_LOGO = process.env.STORE_LOGO
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
-  orderService: OrderService
+  orderService: OrderService,
   sendgridService: any
 }
 
@@ -33,18 +31,20 @@ class OrderPlacedSubscriber {
 
   handleOrderPlaced = async (data: Record<string, any>) => {
     const order = await this.orderService_.retrieveWithTotals(data.id, {
-      relations: ["items", "customer", "shipping_address"],
+      relations: ["items", "customer", "shipping_address", "sales_channel"],
     })
+    const { store_name, store_url } = getStoreDetails(order.sales_channel);
     debugLog("handleOrderPlaced running...")
-    this.sendgridEmail(order)
-    this.klaviyoEvent(order)
+    this.sendgridEmail(order, store_name, store_url)
+    this.klaviyoEvent(order, store_name, store_url)
   }
 
   // SendGrid Email Handler
-  sendgridEmail = (order: any) => {
+  sendgridEmail = (order: any, store_name, store_url) => {
     debugLog("sending email to:", order.email)
     debugLog("using template ID:", SENDGRID_ORDER_PLACED)
-    debugLog("using STORE_URL value:", STORE_URL)
+    debugLog("using store_name:", store_name)
+    debugLog("using store_url:", store_url)
     this.sendGridService.sendEmail({
       templateId: SENDGRID_ORDER_PLACED,
       from: SENDGRID_FROM,
@@ -64,21 +64,23 @@ class OrderPlacedSubscriber {
         shipping_total: (order.shipping_total / 100).toFixed(2),
         tax_total: (order.tax_total / 100).toFixed(2),
         total: (order.total / 100).toFixed(2),
-        store_url: STORE_URL,
-        store_name: STORE_NAME,
-        store_logo: STORE_LOGO,
+        store_name: store_name,
+        store_url: store_url,
+        store_logo: store_url + "/favicon.ico",
         /*data*/ /* add in to see the full data object returned by the event */
       }
     })    
   }
 
   // Klaviyo Event Handler
-  klaviyoEvent = async (order: any) => {
+  klaviyoEvent = async (order: any, store_name, store_url) => {
     debugLog("creating event in Klaviyo...")
 
     try {
       const orderProperties = {
-        store_name: STORE_NAME,
+        store_name: store_name,
+        store_url: store_url,
+        store_logo: store_url + "/favicon.ico",
         order: order
         // ... [Add other properties as needed]
       }
