@@ -44,7 +44,6 @@ class OrderPlacedSubscriber {
     debugLog("sending email to:", order.email)
     debugLog("using template ID:", SENDGRID_ORDER_PLACED)
     debugLog("using store details:", store)
-    debugLog("sending email to:", order.email)
     this.sendGridService.sendEmail({
       templateId: SENDGRID_ORDER_PLACED,
       from: SENDGRID_FROM,
