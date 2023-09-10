@@ -64,18 +64,17 @@ class OrderCanceledSubscriber {
 
     try {
       const orderProperties = {
+        order: order,
         store: store,
-        order: order
         // ... [Add other properties as needed]
       }
 
-      await createEvent("Cancelled Order", order.email, (order.total / 100).toFixed(2), orderProperties)
-      debugLog("'Cancelled Order' event created successfully in Klaviyo.")
+      await createEvent("Order Cancelled", order.email, order.id, (order.total / 100).toFixed(2), orderProperties)
+      debugLog("'Order Cancelled' event created successfully in Klaviyo.")
     } catch (error) {
       console.error("Error creating Klaviyo event:", error.message)
     }
   }
-
 }
 
 export default OrderCanceledSubscriber

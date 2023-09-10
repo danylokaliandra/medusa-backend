@@ -75,13 +75,39 @@ class OrderPlacedSubscriber {
 
     try {
       const orderProperties = {
+        order: order,
         store: store,
-        order: order
         // ... [Add other properties as needed]
       }
 
-      await createEvent("Placed Order", order.email, (order.total / 100).toFixed(2), orderProperties)
-      debugLog("'Placed Order' event created successfully in Klaviyo.")
+      // Create the 'Order Placed' Event
+      await createEvent("Order Placed", order.email, order.id, (order.total / 100).toFixed(2), orderProperties)
+      debugLog("'Order Placed' event created successfully in Klaviyo.")
+
+      // Counter for keeping track of the item number across all products
+      let itemCounter = 0;
+
+      // Create 'Product Ordered' Events for each individual item on the order
+      for (const item of order.items) {
+        const itemProperties = {
+          itemNumber: 0, // just an initial placeholder
+          item: item,
+          store: store,
+          // ... [Add other properties as needed]
+        }
+
+        // Loop through the quantity of each item and create an event for each one
+        for (let i = 0; i < item.quantity; i++) {
+          // Include the itemCounter in the properties
+          itemProperties.itemNumber = itemCounter;
+
+          await createEvent("Product Ordered", order.email, `${order.id}_${itemProperties.itemNumber}`, (item.unit_price / 100).toFixed(2), itemProperties)
+          debugLog(`'Product Ordered' event for item ${item.id} created successfully in Klaviyo.`)
+
+          // Increment the itemCounter for the next item
+          itemCounter++;
+        }
+      }
     } catch (error) {
       console.error("Error creating Klaviyo event:", error.message)
     }

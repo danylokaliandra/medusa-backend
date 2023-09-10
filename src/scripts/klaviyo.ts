@@ -27,6 +27,7 @@ const klaviyoRequest = async (method: HttpMethod, endpoint: string, params?: any
     params: params,
     data: body
   });
+  debugLog("Klaviyo API Response Status:", response.status);
   return response.data;
   } catch (error) {
   console.error("Error when calling Klaviyo API:", error.response?.data || error.message);
@@ -52,6 +53,7 @@ export const createProfile = (profileData: any) => klaviyoRequest('POST', 'profi
 export const createEvent = async (
   metricName: string, 
   email: any, 
+  uniqueID: string,
   value: string, 
   properties: any
 ) => {
@@ -78,7 +80,8 @@ export const createEvent = async (
             }
 
           }
-        }
+        },
+        unique_id: uniqueID,
       }
     }
   };
