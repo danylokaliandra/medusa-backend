@@ -17,6 +17,7 @@
 
 # npm files
 **/.npmrc
+package-lock.json
 
 # yarn files
 **/.yarn*/
