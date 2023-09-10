@@ -33,18 +33,18 @@ class OrderPlacedSubscriber {
     const order = await this.orderService_.retrieveWithTotals(data.id, {
       relations: ["items", "customer", "shipping_address", "sales_channel"],
     })
-    const { store_name, store_url } = getStoreDetails(order.sales_channel);
+    const store = getStoreDetails(order.sales_channel)
     debugLog("handleOrderPlaced running...")
-    this.sendgridEmail(order, store_name, store_url)
-    this.klaviyoEvent(order, store_name, store_url)
+    this.sendgridEmail(order, store)
+    this.klaviyoEvent(order, store)
   }
 
   // SendGrid Email Handler
-  sendgridEmail = (order: any, store_name, store_url) => {
+  sendgridEmail = (order: any, store) => {
     debugLog("sending email to:", order.email)
     debugLog("using template ID:", SENDGRID_ORDER_PLACED)
-    debugLog("using store_name:", store_name)
-    debugLog("using store_url:", store_url)
+    debugLog("using store details:", store)
+    debugLog("sending email to:", order.email)
     this.sendGridService.sendEmail({
       templateId: SENDGRID_ORDER_PLACED,
       from: SENDGRID_FROM,
@@ -64,23 +64,19 @@ class OrderPlacedSubscriber {
         shipping_total: (order.shipping_total / 100).toFixed(2),
         tax_total: (order.tax_total / 100).toFixed(2),
         total: (order.total / 100).toFixed(2),
-        store_name: store_name,
-        store_url: store_url,
-        store_logo: store_url + "/favicon.ico",
+        store: store,
         /*data*/ /* add in to see the full data object returned by the event */
       }
     })    
   }
 
   // Klaviyo Event Handler
-  klaviyoEvent = async (order: any, store_name, store_url) => {
+  klaviyoEvent = async (order: any, store) => {
     debugLog("creating event in Klaviyo...")
 
     try {
       const orderProperties = {
-        store_name: store_name,
-        store_url: store_url,
-        store_logo: store_url + "/favicon.ico",
+        store: store,
         order: order
         // ... [Add other properties as needed]
       }

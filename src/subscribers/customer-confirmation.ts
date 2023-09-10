@@ -36,23 +36,22 @@ class CustomerConfirmationSubscriber {
   handleCustomerConfirmation = async (data: Record<string, any>) => {
     const customer = await this.customerService_.retrieve(data.id)
     const sales_channel = await this.salesChannelService_.retrieve(data.sales_channel_id)
-    const { store_name, store_url } = getStoreDetails(sales_channel);
+    const store = getStoreDetails(await this.salesChannelService_.retrieve(customer.sales_channel_id));
 
     debugLog("handleCustomerConfirmation running...")
     if (customer.has_account) {
       debugLog("customer has account...")
-      this.sendgridEmail(customer, store_name, store_url)
-      this.klaviyoCreateProfile(customer, store_name, store_url)
+      this.sendgridEmail(customer, store)
+      this.klaviyoCreateProfile(customer, store)
     }
   }
 
   // SendGrid Email Handler
-  sendgridEmail = (customer: any, store_name, store_url) => {
+  sendgridEmail = (customer: any, store) => {
     debugLog("sending email to:", customer.email)
     debugLog("using template ID:", SENDGRID_CUSTOMER_CONFIRMATION)
-    debugLog("using store_name:", store_name)
-    debugLog("using store_url:", store_url)
-    
+    debugLog("using store details:", store)
+    debugLog("sending email to:", customer.email)
     this.sendGridService.sendEmail({
       templateId: SENDGRID_CUSTOMER_CONFIRMATION,
       from: SENDGRID_FROM,
@@ -61,16 +60,14 @@ class CustomerConfirmationSubscriber {
         email: customer.email,
         first_name: customer.first_name,
         last_name: customer.last_name,
-        store_name: store_name,
-        store_url: store_url,
-        store_logo: store_url + "/favicon.ico",
+        store: store,
         /*data*/ /* add in to see the full data object returned by the event */
       },
     })    
   }
 
   // Klaviyo Profile Handler
-  klaviyoCreateProfile = async (customer: any, store_name, store_url) => {
+  klaviyoCreateProfile = async (customer: any, store) => {
     // Check if profile exists
     debugLog("Check if profile exists in Klaviyo...")
     const profiles = await getProfileByEmail(customer.email)
@@ -87,8 +84,7 @@ class CustomerConfirmationSubscriber {
         // phone_number: customer.phone,
         // Add more attributes if needed
         properties: {
-          store_name: store_name,
-          store_url: store_url,
+          store: store,
         }
       }
       const createdProfile = await createProfile(newProfile)

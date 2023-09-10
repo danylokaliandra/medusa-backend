@@ -39,13 +39,12 @@ class OrderShippedSubscriber {
     const fulfillment = await this.fulfillmentService_.retrieve(data.fulfillment_id, {
       relations: ["items", "tracking_links"],
     })
-    const { store_name, store_url } = getStoreDetails(order.sales_channel);
+    const store = getStoreDetails(order.sales_channel)
     debugLog("handleOrderShipped running...")
     if (!data.no_notification) ( // do not send if notifications suppressed
       debugLog("notifications on..."),
       debugLog("using template ID:", SENDGRID_ORDER_SHIPPED),
-      debugLog("using store_name:", store_name),
-      debugLog("using store_url:", store_url),
+      debugLog("using store details:", store),
       debugLog("sending email to:", order.email),
       this.sendGridService.sendEmail({
         templateId: SENDGRID_ORDER_SHIPPED,
@@ -64,9 +63,7 @@ class OrderShippedSubscriber {
           order_fulfillment: fulfillment,
           shipping_address: order.shipping_address,
           tracking_numbers: fulfillment.tracking_numbers,
-          store_name: store_name,
-          store_url: store_url,
-          store_logo: store_url + "/favicon.ico",
+          store: store,
           /*data*/ /* add in to see the full data object returned by the event */
         }
       })

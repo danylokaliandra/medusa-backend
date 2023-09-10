@@ -32,13 +32,12 @@ class OrderPaymentCapturedSubscriber {
     const order = await this.orderService_.retrieve(data.id, {
       relations: ["customer", "shipping_address", "sales_channel"],
     })
-    const { store_name, store_url } = getStoreDetails(order.sales_channel);
+    const store = getStoreDetails(order.sales_channel)
     debugLog("handleOrderPaymentCaptured running...")
     if (!data.no_notification) ( // do not send if notifications suppressed
       debugLog("notifications on..."),
       debugLog("using template ID:", SENDGRID_ORDER_PAID),
-      debugLog("using store name:", store_name),
-      debugLog("using store url:", store_url),
+      debugLog("using store details:", store),
       debugLog("sending email to:", order.email),
       this.sendGridService.sendEmail({
         templateId: SENDGRID_ORDER_PAID,
@@ -50,9 +49,7 @@ class OrderPaymentCapturedSubscriber {
           status: order.status,
           customer: order.customer,
           shipping_address: order.shipping_address,
-          store_name: store_name,
-          store_url: store_url,
-          store_logo: store_url + "/favicon.ico",
+          store: store,
           /*data*/ /* add in to see the full data object returned by the event */
         }
       })

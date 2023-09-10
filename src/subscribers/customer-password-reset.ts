@@ -34,14 +34,11 @@ class CustomerPasswordResetSubscriber {
 
   handleCustomerPasswordReset = async (data: Record<string, any>) => {
     const customer = await this.customerService_.retrieve(data.id)
-    const sales_channel = await this.salesChannelService_.retrieve(customer.sales_channel_id)
-    debugLog("sales_channel:", sales_channel)
-    const { store_name, store_url } = getStoreDetails(sales_channel);
-
+    //const sales_channel = await this.salesChannelService_.retrieve(customer.sales_channel_id)
+    const store = getStoreDetails(await this.salesChannelService_.retrieve(customer.sales_channel_id));
     debugLog("handleCustomerPasswordReset running...")
     debugLog("using template ID:", SENDGRID_CUSTOMER_PASSWORD_RESET)
-    debugLog("using store_name:", store_name)
-    debugLog("using store_url:", store_url)
+    debugLog("using store details:", store)
     debugLog("sending email to:", data.email)
     this.sendGridService.sendEmail({
       templateId: SENDGRID_CUSTOMER_PASSWORD_RESET,
@@ -52,9 +49,7 @@ class CustomerPasswordResetSubscriber {
         first_name: data.first_name,
         last_name: data.last_name,
         token: data.token,
-        store_name: store_name,
-        store_url: store_url,
-        store_logo: store_url + "/favicon.ico",
+        store: store,
         /*data*/ /* add in to see the full data object returned by the event */
       },
     })
