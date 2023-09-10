@@ -30,7 +30,7 @@ class OrderCanceledSubscriber {
   }
 
   handleOrderCanceled = async (data: Record<string, any>) => {
-    const order = await this.orderService_.retrieve(data.id, {
+    const order = await this.orderService_.retrieveWithTotals(data.id, {
       relations: ["customer", "sales_channel"],
     })
     const store = getStoreDetails(order.sales_channel)
