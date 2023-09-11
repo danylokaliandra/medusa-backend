@@ -1,4 +1,5 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
+import { createEvent } from "../scripts/klaviyo"
 import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
 
@@ -29,14 +30,20 @@ class OrderCanceledSubscriber {
   }
 
   handleOrderCanceled = async (data: Record<string, any>) => {
-    const order = await this.orderService_.retrieve(data.id, {
+    const order = await this.orderService_.retrieveWithTotals(data.id, {
       relations: ["customer", "sales_channel"],
     })
     const store = getStoreDetails(order.sales_channel)
     debugLog("handleOrderCanceled running...")
+    this.sendgridEmail(order, store)
+    this.klaviyoEvent(order, store)
+  }
+
+  // SendGrid Email Handler
+  sendgridEmail = (order: any, store) => {
+    debugLog("sending email to:", order.email)
     debugLog("using template ID:", SENDGRID_ORDER_CANCELED)
     debugLog("using store details:", store)
-    debugLog("sending email to:", order.email)
     this.sendGridService.sendEmail({
       templateId: SENDGRID_ORDER_CANCELED,
       from: SENDGRID_FROM,
@@ -49,6 +56,24 @@ class OrderCanceledSubscriber {
         /*data*/ /* add in to see the full data object returned by the event */
       }
     })
+  }
+
+  // Klaviyo Event Handler
+  klaviyoEvent = async (order: any, store) => {
+    debugLog("creating event in Klaviyo...")
+
+    try {
+      const orderProperties = {
+        order: order,
+        store: store,
+        // ... [Add other properties as needed]
+      }
+
+      await createEvent("Order Cancelled", order.email, order.id, (order.total / 100).toFixed(2), orderProperties)
+      debugLog("'Order Cancelled' event created successfully in Klaviyo.")
+    } catch (error) {
+      console.error("Error creating Klaviyo event:", error.message)
+    }
   }
 }
 

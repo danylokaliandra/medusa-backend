@@ -27,6 +27,7 @@ const klaviyoRequest = async (method: HttpMethod, endpoint: string, params?: any
     params: params,
     data: body
   });
+  debugLog("Klaviyo API Response Status:", response.status);
   return response.data;
   } catch (error) {
   console.error("Error when calling Klaviyo API:", error.response?.data || error.message);
@@ -36,6 +37,9 @@ const klaviyoRequest = async (method: HttpMethod, endpoint: string, params?: any
 
 // Return a list of all profiles in Klaviyo
 export const getAllProfiles = () => klaviyoRequest('GET', 'profiles/');
+
+// Return a single profile using its ID
+export const getProfile = (id: string) => klaviyoRequest('GET', `profiles/${id}/`);
 
 // Return a single profile from Klaviyo using an email as input 
 export const getProfileByEmail = (email: string) => klaviyoRequest('GET', `profiles?filter=equals(email,"${encodeURIComponent(email)}")`);
@@ -48,10 +52,20 @@ export const createProfile = (profileData: any) => klaviyoRequest('POST', 'profi
   }
 });
 
+// Update a Profile with an input email
+export const updateProfile = (id: string, profileData: any) => klaviyoRequest('PATCH', `profiles/${id}/`, undefined, {
+  data: {
+    type: "profile",
+    id: id,
+    attributes: profileData
+  }
+});
+
 // Create an Event (e.g. Placed Order)
 export const createEvent = async (
   metricName: string, 
   email: any, 
+  uniqueID: string,
   value: string, 
   properties: any
 ) => {
@@ -78,7 +92,8 @@ export const createEvent = async (
             }
 
           }
-        }
+        },
+        unique_id: uniqueID,
       }
     }
   };
