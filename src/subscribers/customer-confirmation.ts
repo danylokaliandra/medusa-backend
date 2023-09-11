@@ -68,11 +68,9 @@ class CustomerConfirmationSubscriber {
 
   // Klaviyo Profile Handler
   klaviyoProfile = async (customer: any, store) => {
-    // Check if profile exists
+    // Check if profile exists already in Klaviyo (based on email)
     debugLog("Check if profile exists in Klaviyo...")
     const profiles = await getProfileByEmail(customer.email)
-    debugLog("Profiles returned:", profiles)
-    debugLog("Profiles returned (0 or 1):", profiles.data.length)
 
     // If profile does not exist, create it
     if (!profiles.data.length) {
@@ -88,14 +86,12 @@ class CustomerConfirmationSubscriber {
         }
       }
       const createdProfile = await createProfile(newProfile)
-      debugLog("Profile created:", createdProfile)
+      debugLog("Profile created:", JSON.stringify(createdProfile, null, 2))
     } else {
-      debugLog("Profile already exists.")
+      debugLog("Profile already exists, checking to see if stores need patching.")
       // see if stores needs updating
       const profile = await getProfile(profiles.data[0].id)
-      debugLog("Original profile:", JSON.stringify(profile, null, 2))
       const stores = profile.data.attributes.properties.stores || []
-
       // Check if the store already exists in the profile based on sales_channel_id
       const storeIndex = stores.findIndex(s => s.sales_channel_id === store.sales_channel_id)
 
@@ -106,19 +102,17 @@ class CustomerConfirmationSubscriber {
         // Add the new store to the end of the stores array
         stores.push(store)
       }
-      debugLog("Patched stores:", JSON.stringify(stores, null, 2))
 
-      // Construct the patch object with only the necessary fields
+      // Construct a patch object
       const profilePatch = {
         properties: {
           stores: stores
         }
       };
-      debugLog("Patched profile:", JSON.stringify(profilePatch, null, 2))
 
       // Now, update the profile with the modified/updated 'stores' array
       const updatedProfile = await updateProfile(profile.data.id, profilePatch);
-      debugLog("Profile updated:", updatedProfile)
+      debugLog("Profile updated:", JSON.stringify(updatedProfile, null, 2))
     }
   }
 }
