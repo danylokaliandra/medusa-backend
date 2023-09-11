@@ -1,5 +1,5 @@
 import { CustomerService, SalesChannelService, EventBusService } from "@medusajs/medusa"
-import { getProfileByEmail, createProfile } from "../scripts/klaviyo"
+import { getProfile, getProfileByEmail, createProfile, updateProfile } from "../scripts/klaviyo"
 import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
 
@@ -42,7 +42,7 @@ class CustomerConfirmationSubscriber {
     if (customer.has_account) {
       debugLog("customer has account...")
       this.sendgridEmail(customer, store)
-      this.klaviyoCreateProfile(customer, store)
+      this.klaviyoProfile(customer, store)
     }
   }
 
@@ -67,7 +67,7 @@ class CustomerConfirmationSubscriber {
   }
 
   // Klaviyo Profile Handler
-  klaviyoCreateProfile = async (customer: any, store) => {
+  klaviyoProfile = async (customer: any, store) => {
     // Check if profile exists
     debugLog("Check if profile exists in Klaviyo...")
     const profiles = await getProfileByEmail(customer.email)
@@ -84,13 +84,41 @@ class CustomerConfirmationSubscriber {
         // phone_number: customer.phone,
         // Add more attributes if needed
         properties: {
-          store: store,
+          stores: [store], // initialise store as an array as profiles can interact with multiple stores
         }
       }
       const createdProfile = await createProfile(newProfile)
       debugLog("Profile created:", createdProfile)
     } else {
       debugLog("Profile already exists.")
+      // see if stores needs updating
+      const profile = await getProfile(profiles.data[0].id)
+      debugLog("Original profile:", JSON.stringify(profile, null, 2))
+      const stores = profile.data.attributes.properties.stores || []
+
+      // Check if the store already exists in the profile based on sales_channel_id
+      const storeIndex = stores.findIndex(s => s.sales_channel_id === store.sales_channel_id)
+
+      if (storeIndex !== -1) {
+        // Store already exists, update its properties
+        stores[storeIndex] = { ...stores[storeIndex], ...store }
+      } else {
+        // Add the new store to the end of the stores array
+        stores.push(store)
+      }
+      debugLog("Patched stores:", JSON.stringify(stores, null, 2))
+
+      // Construct the patch object with only the necessary fields
+      const profilePatch = {
+        properties: {
+          stores: stores
+        }
+      };
+      debugLog("Patched profile:", JSON.stringify(profilePatch, null, 2))
+
+      // Now, update the profile with the modified/updated 'stores' array
+      const updatedProfile = await updateProfile(profile.data.id, profilePatch);
+      debugLog("Profile updated:", updatedProfile)
     }
   }
 }

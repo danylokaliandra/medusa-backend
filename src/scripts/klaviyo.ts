@@ -38,6 +38,9 @@ const klaviyoRequest = async (method: HttpMethod, endpoint: string, params?: any
 // Return a list of all profiles in Klaviyo
 export const getAllProfiles = () => klaviyoRequest('GET', 'profiles/');
 
+// Return a single profile using its ID
+export const getProfile = (id: string) => klaviyoRequest('GET', `profiles/${id}/`);
+
 // Return a single profile from Klaviyo using an email as input 
 export const getProfileByEmail = (email: string) => klaviyoRequest('GET', `profiles?filter=equals(email,"${encodeURIComponent(email)}")`);
 
@@ -45,6 +48,15 @@ export const getProfileByEmail = (email: string) => klaviyoRequest('GET', `profi
 export const createProfile = (profileData: any) => klaviyoRequest('POST', 'profiles/', undefined, {
   data: {
     type: "profile",
+    attributes: profileData
+  }
+});
+
+// Update a Profile with an input email
+export const updateProfile = (id: string, profileData: any) => klaviyoRequest('PATCH', `profiles/${id}/`, undefined, {
+  data: {
+    type: "profile",
+    id: id,
     attributes: profileData
   }
 });
