@@ -49,7 +49,10 @@ class CustomerService extends MedusaCustomerService {
       customer.email = customer.email.toLowerCase()
 
       // set customer.sales_channel_id using the sales channel registered in middleware
-      if (!customer.sales_channel_id) { customer.sales_channel_id = this.salesChannelID_ }
+      if (!customer.sales_channel_id) { 
+        debugLog ("customer.sales_channel_id not set, assigning with value:", this.salesChannelID_)
+        customer.sales_channel_id = this.salesChannelID_
+      }
 
       const { email, password } = customer
 
