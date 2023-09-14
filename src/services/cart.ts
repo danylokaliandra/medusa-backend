@@ -1,22 +1,6 @@
 import { Lifetime } from "awilix"
-import { Customer } from "../models/customer"
 import CustomerService from "../services/customer"
-import { validateEmail } from "@medusajs/medusa/dist/utils/is-email"
 import { CartService as MedusaCartService } from "@medusajs/medusa"
-// extra imports for create function
-import {
-  CartCreateProps,
-  CartUpdateProps
-} from "@medusajs/medusa/dist/types/cart"
-import {
-  Cart,
-  DiscountRuleType
-} from "@medusajs/medusa/dist/models"
-import { DeepPartial, EntityManager } from "typeorm"
-import SalesChannelFeatureFlag from "@medusajs/medusa/dist/loaders/feature-flags/sales-channels"
-import { isDefined, MedusaError } from "medusa-core-utils"
-import { setMetadata } from "@medusajs/medusa/dist/utils"
-import { debugLog } from "../scripts/debug"
 
 type InjectedDependencies = {
   customerService: CustomerService
