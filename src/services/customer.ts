@@ -20,7 +20,7 @@ class CustomerService extends MedusaCustomerService {
   static LIFE_TIME = Lifetime.SCOPED
 
   // initialise Sales Channel
-  protected readonly salesChannel_: string | null = null;
+  protected readonly salesChannelID_: string | null = null;
 
   // capture Sales Channel from middleware
   constructor(container, options) {
@@ -28,7 +28,7 @@ class CustomerService extends MedusaCustomerService {
     super(...arguments)
     
     try {
-      this.salesChannel_ = container.salesChannel
+      this.salesChannelID_ = container.salesChannelID
     } catch (e) {
       // avoid errors when backend first runs
     }
@@ -79,9 +79,9 @@ class CustomerService extends MedusaCustomerService {
   ): Promise<Customer | never> {
     debugLog("retrieveRegisteredByEmailAndSalesChannel running...")
     
-    debugLog("email:", email, "storefront sales channel id:", this.salesChannel_)
+    debugLog("email:", email, "storefront sales channel id:", this.salesChannelID_)
     return await this.retrieveBySalesChannel_(
-      { email: email.toLowerCase(), has_account: true, sales_channel_id: this.salesChannel_ },
+      { email: email.toLowerCase(), has_account: true, sales_channel_id: this.salesChannelID_ },
       config
     )
   }
@@ -114,7 +114,7 @@ class CustomerService extends MedusaCustomerService {
    */
   async create(customer: CreateCustomerInput): Promise<Customer> {
     debugLog("customer.create running...")
-    debugLog("sales channel id:", this.salesChannel_)
+    debugLog("sales channel id:", this.salesChannelID_)
     return await this.atomicPhase_(async (manager) => {
 
       const customerRepository = manager.withRepository(
@@ -122,12 +122,12 @@ class CustomerService extends MedusaCustomerService {
       )
 
       customer.email = customer.email.toLowerCase()
-      if (!customer.sales_channel_id) { customer.sales_channel_id = this.salesChannel_ }
+      if (!customer.sales_channel_id) { customer.sales_channel_id = this.salesChannelID_ }
 
       const { email, password } = customer
 
       // should be a list of customers at this point
-      const existing = await this.listByEmailAndSalesChannel(email, this.salesChannel_).catch(() => undefined)
+      const existing = await this.listByEmailAndSalesChannel(email, this.salesChannelID_).catch(() => undefined)
 
       // should validate that "existing.some(acc => acc.has_account) && password"
       if (existing) {
