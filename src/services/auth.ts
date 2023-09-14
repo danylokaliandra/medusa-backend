@@ -39,7 +39,7 @@ class AuthService extends MedusaAuthService {
     debugLog("email:", email, "password:", password)
     debugLog("sales channel ID registered through middleware", this.salesChannelID_);
     
-    // make sure customer service is initialised (this will have been pulled from the AuthService parent constructor)
+    // customer service was initialised from the AuthService parent constructor
     if (!this.customerService_) {
       throw new Error("CustomerService is not initialized");
     }
