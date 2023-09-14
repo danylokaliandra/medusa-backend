@@ -1,13 +1,21 @@
 import { Lifetime } from "awilix"
+import PublishableApiKeyService from "@medusajs/medusa/dist/services/publishable-api-key"
+import { NextFunction, Request, Response } from "express"
 
 export async function registerSalesChannel(req, res, next) {
-  // Retrieve Sales Channel from the request header 
-  const salesChannel = req.header("sales_channel_id")
+  // resolve publishable key service
+  const publishableKeyService: PublishableApiKeyService = req.scope.resolve("publishableApiKeyService")
+  // Retrieve x-publishable-api-key
+  const pubKey = req.get("x-publishable-api-key")
+  // grab sales channels
+  const channels = await publishableKeyService.listSalesChannels(pubKey)
+  // return key of first sales channel
+  const sales_channel_id = String(channels[0]?.id)
   
-  // Register the Sales Channel
+  // Register the Sales Channel ID
   req.scope.register({
     salesChannel: {
-      resolve: () => salesChannel,
+      resolve: () => sales_channel_id,
     },
   })
   

@@ -34,15 +34,18 @@ class CustomerService extends MedusaCustomerService {
     }
   }
 
-  private async retrieveBySalesChannel_(
+  public async retrieveBySalesChannel_(
     selector: MedusaSelector<Customer>,
     config: FindConfig<Customer> = {}
   ): Promise<Customer | never> {
+    debugLog("retrieveBySalesChannel running...")
     const customerRepo = this.activeManager_.withRepository(
       this.customerRepository_
     )
     const query = buildQuery(selector, config)
+    debugLog("query:", query)
     const customer = await customerRepo.findOne(query)
+    debugLog("customer retrieved:", customer)
 
     if (!customer) {
       const selectorConstraints = Object.entries(selector)
@@ -53,7 +56,7 @@ class CustomerService extends MedusaCustomerService {
         `Customer with ${selectorConstraints} was not found`
       )
     }
-
+    debugLog("retrieveBySalesChannel success...")
     return customer
   }
 
@@ -63,7 +66,7 @@ class CustomerService extends MedusaCustomerService {
     config: FindConfig<Customer> = {}
   ): Promise<Customer | never> {
     debugLog("retrieveUnregisteredByEmailAndSalesChannel running...")
-    debugLog("email:", email, "sales channel id:", sales_channel_id)
+    debugLog("email:", email, "storefront sales channel id:", sales_channel_id)
     return await this.retrieveBySalesChannel_(
       { email: email.toLowerCase(), has_account: false, sales_channel_id: sales_channel_id },
       config
@@ -75,7 +78,8 @@ class CustomerService extends MedusaCustomerService {
     config: FindConfig<Customer> = {}
   ): Promise<Customer | never> {
     debugLog("retrieveRegisteredByEmailAndSalesChannel running...")
-    debugLog("email:", email, "sales channel id:", this.salesChannel_)
+    
+    debugLog("email:", email, "storefront sales channel id:", this.salesChannel_)
     return await this.retrieveBySalesChannel_(
       { email: email.toLowerCase(), has_account: true, sales_channel_id: this.salesChannel_ },
       config
@@ -148,7 +152,7 @@ class CustomerService extends MedusaCustomerService {
         delete customer.password
       }
 
-      //else (customer.has_account = false)
+      //else { customer.has_account = false }
 
       debugLog("calling customer.create with props:", "email:", customer.email, "has_account:", customer.has_account, "sales channel id:", customer.sales_channel_id)
 

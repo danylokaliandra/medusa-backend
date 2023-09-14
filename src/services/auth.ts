@@ -13,11 +13,16 @@ class AuthService extends MedusaAuthService {
   static LIFE_TIME = Lifetime.SCOPED
   protected readonly customerService_: CustomerService = null!; // add initialiser to overwrite from base AuthService
 
-  constructor( dependencies: InjectedDependencies ) {
+  // initialise Sales Channel
+  protected readonly salesChannel_: string | null = null;
+
+  // capture Sales Channel from middleware
+  constructor(container, options, dependencies: InjectedDependencies) {
     // @ts-expect-error prefer-rest-params
     super(...arguments)
     
     try {
+      this.salesChannel_ = container.salesChannel
       this.customerService_ = dependencies.customerService
     } catch (e) {
       // avoid errors when backend first runs
@@ -41,15 +46,20 @@ class AuthService extends MedusaAuthService {
   ): Promise<AuthenticateResult> {
     debugLog("authenticateCustomer running...")
     debugLog("email:", email, "password:", password)
+    debugLog("sales channel registered through middleware", this.salesChannel_)
+
     return await this.atomicPhase_(async (transactionManager) => {
+      // get list of users with that email
+
       try {
-        const sC = this.customerService_.updateBillingAddress_
-        const customer: Customer = await this.customerService_
+        const customerList: [Customer] = await this.customerService_
           .withTransaction(transactionManager)
-          .retrieveRegisteredByEmailAndSalesChannel(email, {
-            select: ["id", "password_hash"],
-          })
-        if (customer.password_hash) {
+          .listByEmail( email.toLowerCase())
+        debugLog("customer list", customerList)
+        return
+        // filter out sales channels
+
+/*        if (customer.password_hash) {
           const passwordsMatch = await this.comparePassword_(
             password,
             customer.password_hash
@@ -59,16 +69,18 @@ class AuthService extends MedusaAuthService {
             const customer = await this.customerService_
               .withTransaction(transactionManager)
               .retrieveRegisteredByEmailAndSalesChannel(email)
+            debugLog("authenticateCustomer success")
             return {
               success: true,
               customer,
             }
           }
-        }
+        }*/
       } catch (error) {
         // ignore
       }
 
+      debugLog("authenticateCustomer failed, invalid email or password")
       return {
         success: false,
         error: "Invalid email or password",
