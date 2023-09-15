@@ -1,24 +1,20 @@
 import { Lifetime } from "awilix"
 import { AuthenticateResult } from "@medusajs/medusa/dist/types/auth"
-import { Customer } from "../models/customer"
-import CustomerService from "../services/customer"
 import { AuthService as MedusaAuthService } from "@medusajs/medusa"
+import { Customer } from "@medusajs/medusa"
 import { debugLog } from "../scripts/debug"
-
-type InjectedDependencies = {
-  customerService: CustomerService
-}
 
 class AuthService extends MedusaAuthService {
   static LIFE_TIME = Lifetime.SCOPED
-  protected readonly customerService_: CustomerService = null!; // add initialiser to overwrite from base AuthService
+  protected readonly salesChannelID_: string | null = null;
 
-  constructor( dependencies: InjectedDependencies ) {
+  // constructor reads the salesChannelID from the container where it was registered by middleware
+  constructor( container ) {
     // @ts-expect-error prefer-rest-params
     super(...arguments)
-    
+
     try {
-      this.customerService_ = dependencies.customerService
+      this.salesChannelID_ = container.salesChannelID;
     } catch (e) {
       // avoid errors when backend first runs
     }
@@ -27,7 +23,7 @@ class AuthService extends MedusaAuthService {
   /**
    * Authenticates a customer based on an email, password combination. Uses
    * scrypt to match password with hashed value. Extended from medusa core to 
-   * retrieve customer matching the sales channel provided in the header.
+   * retrieve customer matching the sales channel from middleware.
    * @param {string} email - the email of the user
    * @param {string} password - the password of the user
    * @return {{ success: (bool), customer: (object | undefined) }}
@@ -41,12 +37,31 @@ class AuthService extends MedusaAuthService {
   ): Promise<AuthenticateResult> {
     debugLog("authenticateCustomer running...")
     debugLog("email:", email, "password:", password)
+    debugLog("sales channel ID registered through middleware:", this.salesChannelID_)
+    
+    // customer service was initialised from the AuthService parent constructor
+    if (!this.customerService_) {
+      throw new Error("CustomerService is not initialized");
+    }
+
+    debugLog ("returning list of registered customers with entered email and expected sales channel ID")  
+    const customers = await this.customerService_.list({ email, has_account: true, sales_channel_id: this.salesChannelID_ })
+    debugLog ("customers:", customers)
+    const customer = customers.length > 0 ? customers[0] : null;
+    debugLog ("customer:", customer)
+
+    if (!customer) {
+      return {
+        success: false,
+        error: "Invalid email or password",
+      };
+    }
+
     return await this.atomicPhase_(async (transactionManager) => {
       try {
-        const sC = this.customerService_.updateBillingAddress_
         const customer: Customer = await this.customerService_
           .withTransaction(transactionManager)
-          .retrieveRegisteredByEmailAndSalesChannel(email, {
+          .retrieveRegisteredByEmail(email, {
             select: ["id", "password_hash"],
           })
         if (customer.password_hash) {
@@ -58,7 +73,8 @@ class AuthService extends MedusaAuthService {
           if (passwordsMatch) {
             const customer = await this.customerService_
               .withTransaction(transactionManager)
-              .retrieveRegisteredByEmailAndSalesChannel(email)
+              .retrieveRegisteredByEmail(email)
+
             return {
               success: true,
               customer,

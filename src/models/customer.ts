@@ -1,6 +1,5 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm"
 import { Customer as MedusaCustomer } from "@medusajs/medusa"
-import { SalesChannel } from "@medusajs/medusa"
 
 @Entity()
 export class Customer extends MedusaCustomer {

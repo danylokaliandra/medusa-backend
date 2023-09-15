@@ -1,15 +1,14 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
+import { createEvent } from "../scripts/klaviyo"
+import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
 
 const SENDGRID_ORDER_CANCELED = process.env.SENDGRID_ORDER_CANCELED
 const SENDGRID_FROM = process.env.SENDGRID_FROM
-const STORE_URL = process.env.STORE_URL
-const STORE_NAME = process.env.STORE_NAME
-const STORE_LOGO = process.env.STORE_LOGO
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
-  orderService: OrderService
+  orderService: OrderService,
   sendgridService: any
 }
 
@@ -31,27 +30,50 @@ class OrderCanceledSubscriber {
   }
 
   handleOrderCanceled = async (data: Record<string, any>) => {
-    const order = await this.orderService_.retrieve(data.id, {
-      relations: ["customer"],
+    const order = await this.orderService_.retrieveWithTotals(data.id, {
+      relations: ["customer", "sales_channel"],
     })
+    const store = getStoreDetails(order.sales_channel)
     debugLog("handleOrderCanceled running...")
-    debugLog("using template ID:", SENDGRID_ORDER_CANCELED)
-    debugLog("using STORE_URL value:", STORE_URL)
+    this.sendgridEmail(order, store)
+    this.klaviyoEvent(order, store)
+  }
+
+  // SendGrid Email Handler
+  sendgridEmail = (order: any, store) => {
     debugLog("sending email to:", order.email)
-  	this.sendGridService.sendEmail({
-  	  templateId: SENDGRID_ORDER_CANCELED,
-  	  from: SENDGRID_FROM,
-  	  to: order.email,
-  	  dynamic_template_data: {
-  	    order_id: order.display_id,
+    debugLog("using template ID:", SENDGRID_ORDER_CANCELED)
+    debugLog("using store details:", store)
+    this.sendGridService.sendEmail({
+      templateId: SENDGRID_ORDER_CANCELED,
+      from: SENDGRID_FROM,
+      to: order.email,
+      dynamic_template_data: {
+        order_id: order.display_id,
         order_date: new Date(order.created_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),
-  	    customer: order.customer,
-  	    store_url: STORE_URL,
-  	    store_name: STORE_NAME,
-  	    store_logo: STORE_LOGO,
-  	    /*data*/ /* add in to see the full data object returned by the event */
-  	  }
-  	})
+        customer: order.customer,
+        store: store,
+        /*data*/ /* add in to see the full data object returned by the event */
+      }
+    })
+  }
+
+  // Klaviyo Event Handler
+  klaviyoEvent = async (order: any, store) => {
+    debugLog("creating event in Klaviyo...")
+
+    try {
+      const orderProperties = {
+        order: order,
+        store: store,
+        // ... [Add other properties as needed]
+      }
+
+      await createEvent("Order Cancelled", order.email, order.id, (order.total / 100).toFixed(2), orderProperties)
+      debugLog("'Order Cancelled' event created successfully in Klaviyo.")
+    } catch (error) {
+      console.error("Error creating Klaviyo event:", error.message)
+    }
   }
 }
 
