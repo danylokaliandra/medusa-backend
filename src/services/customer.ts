@@ -26,6 +26,34 @@ class CustomerService extends MedusaCustomerService {
   }
 
   /**
+   * Generate a JSON Web token, that will be sent to a customer, that wishes to
+   * reset password.
+   * The token will be signed with the customer's current password hash as a
+   * secret a long side a payload with userId and the expiry time for the token,
+   * which is always 15 minutes.
+   * Extended from medusa core to check the sales channel from request header
+   * captured in middleware in order to avoid sending password reset to customers
+   * in different sales channels.
+   * @param {string} customerId - the customer to reset the password for
+   * @return {string} the generated JSON web token
+   */
+   async generateResetPasswordToken(customer_id: string) {
+    debugLog("customer.generateResetPasswordToken running...")
+    debugLog("customer_id:", customer_id)
+    const customer = await this.retrieve(customer_id)
+    debugLog("customer sales channel ID:", customer.sales_channel_id)
+    debugLog("store sales channel ID:", this.salesChannelID_)
+
+    if (customer.sales_channel_id != this.salesChannelID_) {
+      debugLog("customer does not exist in the sales channel, exiting")
+      throw new Error("Customer does not exist in the correct sales channel")
+    }
+    debugLog("customer exists, proceeding to generate reset token") 
+    debugLog("running super.generateResetPasswordToken...")
+    return super.generateResetPasswordToken(customer_id)
+  }
+
+  /**
    * Creates a customer from an email - customers can have accounts associated,
    * e.g. to login and view order history, etc. If a password is provided the
    * customer will automatically get an account, otherwise the customer is just
