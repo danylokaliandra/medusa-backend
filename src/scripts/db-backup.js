@@ -13,19 +13,19 @@ if (!fs.existsSync(envPath)) {
   console.error(`Environment file ${envFile} does not exist.`);
   process.exit(1);
 }
-const dotenvConfig = dotenv.config({ path: envPath });;
+dotenv.config({ path: envPath });
 
 function backupDatabase() {
   // Define the backup directory
-  const backupDirectory = path.resolve(__dirname, '../../z_backups')
+  const backupDirectory = path.resolve(projectDir, 'z_backups')
 
   // Create the backup directory if it doesn't exist
   if (!fs.existsSync(backupDirectory)) {
-    fs.mkdirSync(backupDirectory);
+    fs.mkdirSync(backupDirectory, { recursive: true });
   }
 
   // Generate the backup file name
-  const timestamp = new Date().toISOString();
+  const timestamp = new Date().toISOString().replace(/[^a-zA-Z0-9]/g, '');
   const backupFileName = `backup-${process.env.NODE_ENV}-${timestamp}.dump`;
 
   // Execute the database backup command
@@ -38,4 +38,5 @@ function backupDatabase() {
   }
 }
 
+// Run the backupDatabase function when script is executed
 backupDatabase();
