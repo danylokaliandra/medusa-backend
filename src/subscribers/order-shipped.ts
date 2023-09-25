@@ -1,6 +1,9 @@
-import { EventBusService, OrderService, FulfillmentService } from "@medusajs/medusa"
+import { EventBusService, OrderService } from "@medusajs/medusa"
+import FulfillmentService from "@medusajs/medusa/dist/services/fulfillment"
+/* TODO: the line above forces the old FulfillmentService to be used,
+this will be deprecated and need to be replaced by AbstractFulfillmentService */
 import { createEvent } from "../scripts/klaviyo"
-import { getStoreDetails } from "../scripts/sales-channel";
+import { getStoreDetails } from "../scripts/sales-channel"
 import { debugLog } from "../scripts/debug"
 
 const SENDGRID_ORDER_SHIPPED = process.env.SENDGRID_ORDER_SHIPPED
