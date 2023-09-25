@@ -3,6 +3,8 @@
     "lib": ["es5", "es6"],
     "target": "esnext",
     "allowJs": true,
+    "checkJs": false,
+    "jsx": "react-jsx",
     "esModuleInterop": false,
     "module": "commonjs",
     "moduleResolution": "node",
@@ -18,8 +20,10 @@
   },
   "include": ["src"],
   "exclude": [
+    "build",
+    ".cache",
     "**/__tests__",
     "**/__fixtures__",
-    "node_modules"
+    "node_modules",
   ]
 }
