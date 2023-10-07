@@ -1,6 +1,6 @@
 import { Lifetime } from "awilix"
 import { MedusaError } from "medusa-core-utils"
-import { CustomerService as MedusaCustomerService } from "@medusajs/medusa"
+import { CustomerService as MedusaCustomerService, FindConfig, Selector, buildQuery } from "@medusajs/medusa"
 import { Customer } from "../models/customer"
 import { CreateCustomerInput as MedusaCreateCustomerInput } from "@medusajs/medusa/dist/types/customers"
 import { debugLog } from "../scripts/debug"
@@ -123,6 +123,50 @@ class CustomerService extends MedusaCustomerService {
       return result
     })
   }
+
+  /**
+   * Re-implemented private retrieve_ function from medusa core so it can be
+   * accessible in the extended retrieveUnregisteredByEmail function.
+   */
+  private async retrieveExtended_(
+    selector: Selector<Customer>,
+    config: FindConfig<Customer> = {}
+  ): Promise<Customer | never> {
+    const customerRepo = this.activeManager_.withRepository(
+      this.customerRepository_
+    )
+
+    const query = buildQuery(selector, config)
+    const customer = await customerRepo.findOne(query)
+
+    if (!customer) {
+      const selectorConstraints = Object.entries(selector)
+        .map((key, value) => `${key}: ${value}`)
+        .join(", ")
+      throw new MedusaError(
+        MedusaError.Types.NOT_FOUND,
+        `Customer with ${selectorConstraints} was not found`
+      )
+    }
+
+    return customer
+  }
+
+  /**
+   * Fetches a guest user based on their email. Extended from medusa core to take sales
+   * channel from request header captured in middleware to filter the response.
+   */
+  async retrieveUnregisteredByEmail(
+    email: string,
+    config: FindConfig<Customer> = {}
+  ): Promise<Customer | never> {
+    debugLog("customer.retrieveUnregisteredByEmail running...")
+    return await this.retrieveExtended_(
+      { email: email.toLowerCase(), has_account: false, sales_channel_id: this.salesChannelID_ },
+      config
+    )
+  }
+
 }
 
 export default CustomerService
