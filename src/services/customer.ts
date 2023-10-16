@@ -167,6 +167,20 @@ class CustomerService extends MedusaCustomerService {
     )
   }
 
+  /**
+   * Fetches a registered user based on their email. Extended from medusa core to take sales
+   * channel from request header captured in middleware to filter the response.
+   */
+  async retrieveRegisteredByEmail(
+    email: string,
+    config: FindConfig<Customer> = {}
+  ): Promise<Customer | never> {
+    debugLog("customer.retrieveRegisteredByEmail running...")
+    return await this.retrieveExtended_(
+      { email: email.toLowerCase(), has_account: true, sales_channel_id: this.salesChannelID_ },
+      config
+    )
+  }
 }
 
 export default CustomerService
