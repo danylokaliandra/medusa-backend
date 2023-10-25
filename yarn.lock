@@ -16435,9 +16435,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"medusa-payment-stripe@npm:^6.0.4":
-  version: 6.0.4
-  resolution: "medusa-payment-stripe@npm:6.0.4"
+"medusa-payment-stripe@npm:^6.0.5":
+  version: 6.0.5
+  resolution: "medusa-payment-stripe@npm:6.0.5"
   dependencies:
     body-parser: ^1.19.0
     express: ^4.17.1
@@ -16449,7 +16449,7 @@ __metadata:
   peerDependenciesMeta:
     medusa-react:
       optional: true
-  checksum: 34a8fff4d0ab19839df4607f00af24d7c61970bcea91f7a5adbcdbe3098d86a4d58edbce79d60c6d123ac3632bea481671ce1ba9acb38e7f44ad24d28d54371e
+  checksum: 4880f6761a3a1557b59eb4c43f350e3969bf8370d03b66840a77baec0765ba2c6cc61e724271e0c8d4c4df694a961fbf876a37006ccb2e7aa137b8450c275835
   languageName: node
   linkType: hard
 
@@ -16526,7 +16526,7 @@ __metadata:
     medusa-fulfillment-manual: ^1.1.38
     medusa-interfaces: ^1.3.7
     medusa-payment-manual: ^1.0.24
-    medusa-payment-stripe: ^6.0.4
+    medusa-payment-stripe: ^6.0.5
     medusa-plugin-filestorage-local: ^0.1.2
     medusa-plugin-sendgrid: ^1.3.11
     mongoose: ^5.13.14

@@ -135,6 +135,19 @@ const projectConfig = {
   redis_url: REDIS_URL
 }
 
+// ADMIN ROUTES
+const adminConfig = {
+  routes: [
+    {
+      path: "/a/shipping",
+      component: "Shipping",
+      navigation: {
+        title: "Shipping",
+      },
+    },
+  ],
+}
+
 if (DATABASE_URL && DATABASE_TYPE === "postgres") {
   projectConfig.database_url = DATABASE_URL;
   delete projectConfig["database_database"];
@@ -144,6 +157,7 @@ if (DATABASE_URL && DATABASE_TYPE === "postgres") {
 /** @type {import('@medusajs/medusa').ConfigModule} */
 module.exports = {
   projectConfig,
+  adminConfig,
   plugins,
   modules,
 };
