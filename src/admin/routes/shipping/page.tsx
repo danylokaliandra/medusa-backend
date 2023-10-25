@@ -1,11 +1,13 @@
 import { RouteConfig } from "@medusajs/admin"
-import React from 'react';
-import { Container, Button, Table } from "@medusajs/ui"
+import React, { useState } from 'react';
+import { Checkbox, Container, Button, Table } from "@medusajs/ui"
 import { useAdminOrders } from 'medusa-react';
 import { SimpleConsoleLogger } from "typeorm";
 import { ShoppingCartSolid } from "@medusajs/icons"
 
 const Shipping = () => {
+  const [selectedOrders, setSelectedOrders] = useState([])
+  
   const { orders, isLoading, error } = useAdminOrders({
     limit: 10,
     offset: 0,
@@ -13,7 +15,14 @@ const Shipping = () => {
     fields: "id,display_id,created_at,total,payment_status,fulfillment_status,status",
     //expand: "fulfillments",
   })
-  // console.log(orders)
+  
+  const handleCheckboxChange = (checked, orderId) => {
+    if (checked) {
+      setSelectedOrders([...selectedOrders, orderId]);
+    } else {
+      setSelectedOrders(selectedOrders.filter((id) => id !== orderId));
+    }
+  }
   
   if (isLoading) {
     return <div>Loading...</div>;
@@ -34,7 +43,8 @@ const Shipping = () => {
             </div>
             <div className="flex items-center space-x-2">
               <div>
-                <Button>Print Packing Lists</Button>
+                <Button>Print Packing Lists{selectedOrders.length > 0 && ` for Orders #${selectedOrders.sort((a, b) => a - b).join(", ")}`}</Button>
+                
               </div>
             </div>
           </div>
@@ -42,6 +52,7 @@ const Shipping = () => {
         <Table>
           <Table.Header>
             <Table.Row>
+              <Table.HeaderCell></Table.HeaderCell>
               <Table.HeaderCell>Order#</Table.HeaderCell>
               <Table.HeaderCell>Date</Table.HeaderCell>
               <Table.HeaderCell>Customer Email</Table.HeaderCell>
@@ -54,6 +65,9 @@ const Shipping = () => {
           <Table.Body>
             {orders?.map((order) => (
               <Table.Row key={order.id}>
+                <Table.Cell>
+                  <Checkbox onCheckedChange={(checked) => handleCheckboxChange(checked, order.display_id)}/>
+                </Table.Cell>
                 <Table.Cell>#{order.display_id}</Table.Cell>
                 <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
                 <Table.Cell>{order.customer.email}</Table.Cell>
