@@ -13,17 +13,18 @@ const Shipping = () => {
   const [selectAllShippingOrders, setSelectAllShippingOrders] = useState(false)
   const [selectedPackingOrders, setSelectedPackingOrders] = useState([])
   const [selectAllPackingOrders, setSelectAllPackingOrders] = useState(false)
+  const medusa = new Medusa({baseUrl: process.env.MEDUSA_BACKEND_URL, maxRetries: 3})
   
-  const { orders, isLoading, error } = useAdminOrders({
+  const { orders, isLoading, error, refetch } = useAdminOrders({
     limit: 25,
     offset: 0,
     status: ["pending"], // pending, completed, archived, canceled, requires_action
     payment_status: ["captured"], // captured, awaiting, not_paid, refunded, partially_refunded, canceled, requires_action
     // fulfillment_status: [] // not_fulfilled, fulfilled, partially_fulfilled, shipped, partially_shipped, canceled, returned, partially_returned, requires_action
     fields: "id,display_id,created_at,total,payment_status,fulfillment_status,status,fulfillments,sales_channel",
-    expand: "customer,fulfillments,sales_channel",
+    expand: "customer,fulfillments,items,sales_channel",
   })
-  const notFulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'not_fulfilled') : []
+  const notFulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'not_fulfilled' || order.fulfillment_status === 'canceled') : []
   const fulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'fulfilled') : []
   const shippedOrders = orders ? orders.filter(order => order.fulfillment_status === 'shipped') : []
 
@@ -45,28 +46,26 @@ const Shipping = () => {
     }
   };
 
-  /* const createFulfillments = async () => {
-    for (const orderId of selectedFulfillmentOrders) {
-      const order = orders.find(order => order.id === orderId);
+  const createFulfillments = async () => {
+    for (const displayId of selectedFulfillmentOrders) {
+      const order = notFulfilledOrders.find(order => order.display_id === displayId)
       const itemsToFulfill = order.items.map(item => ({
-        itemId: item.id,
+        item_id: item.id,
         quantity: item.quantity,
-      }));
-  
+      }))
       try {
-        await medusa.admin.orders.createFulfillment(orderId, { items: itemsToFulfill });
+        await medusa.admin.orders.createFulfillment(order.id, {
+          items: itemsToFulfill
+        })
       } catch (error) {
-        console.error(`Failed to create fulfillment for order ${orderId}:`, error);
+        console.error(`Failed to create fulfillment for order ${displayId}:`, error)
       }
     }
-   
-    // Refresh orders
-    useAdminOrders.refresh();
-  };
- */
+    // refetch orders
+    refetch()
+  }
 
   // SHIPPING LOGIC
-
   const handleShippingCheckbox = (checked, orderId) => {
     if (checked) {
       setSelectedShippingOrders([...selectedShippingOrders, orderId]);
@@ -128,7 +127,7 @@ const Shipping = () => {
             </div>
             <div>
               <Tabs.Content value="fulfillment">
-                <Button disabled={selectedFulfillmentOrders.length === 0}>Fulfill Orders{selectedFulfillmentOrders.length > 0 && ` #${selectedFulfillmentOrders.sort((a, b) => a - b).join(", ")}`}</Button>
+                <Button onClick={createFulfillments} disabled={selectedFulfillmentOrders.length === 0}>Fulfill Orders{selectedFulfillmentOrders.length > 0 && ` #${selectedFulfillmentOrders.sort((a, b) => a - b).join(", ")}`}</Button>
               </Tabs.Content>
               <Tabs.Content value="shipping">
                 <Button disabled={selectedShippingOrders.length === 0}>Enter Tracking Numbers{selectedShippingOrders.length > 0 && ` for Orders #${selectedShippingOrders.sort((a, b) => a - b).join(", ")}`}</Button>
@@ -142,10 +141,6 @@ const Shipping = () => {
           <div className="mt-2">
             {/* FULFILLMENT */}
             <Tabs.Content value="fulfillment">
-              {/* TODO:
-                - Tables full of payment processed (but not yet shipped) orders
-                - Selector (checkboxes) to select ones to ship
-                - Click 'fulfill' and it moves to shipping tab */}
               <div className="px-xlarge py-large border-grey-20 border-b border-solid">
                 <div className="flex items-start justify-between">
                   <div>
@@ -166,9 +161,7 @@ const Shipping = () => {
                     <Table.HeaderCell>Sales Channel</Table.HeaderCell>
                     <Table.HeaderCell>Date</Table.HeaderCell>
                     <Table.HeaderCell>Customer Email</Table.HeaderCell>
-                    {/* <Table.HeaderCell>Payment Status</Table.HeaderCell> */}
-                    {/* <Table.HeaderCell>Fulfillment Status</Table.HeaderCell> */}
-                    {/* <Table.HeaderCell>Order Status</Table.HeaderCell> */}
+                    <Table.HeaderCell>Items</Table.HeaderCell>
                     <Table.HeaderCell>Total</Table.HeaderCell>
                   </Table.Row>
                 </Table.Header>
@@ -184,13 +177,14 @@ const Shipping = () => {
                       <Table.Cell>{order.sales_channel.name}</Table.Cell>
                       <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
                       <Table.Cell>{order.customer.email}</Table.Cell>
-                      {/* <Table.Cell>{order.payment_status}</Table.Cell> */}
-                      {/* <Table.Cell>{order.fulfillment_status}</Table.Cell> */}
-                      {/* <Table.Cell>{order.status}</Table.Cell> */}
+                      <Table.Cell>
+                        {order.items.map((item) => (
+                          <div key={item.variant_id}>
+                            {item.quantity} x {item.title} ({item.variant.title})
+                          </div>
+                        ))}
+                      </Table.Cell>
                       <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
-                      {/* rows not in use yet
-                      <Table.Cell>{JSON.stringify(order.fulfillments)}</Table.Cell>
-                      */}
                     </Table.Row>
                   ))}
                 </Table.Body>
