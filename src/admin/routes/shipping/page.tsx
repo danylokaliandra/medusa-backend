@@ -3,15 +3,18 @@ import React, { useState } from 'react';
 import { Checkbox, Container, Button, Table } from "@medusajs/ui"
 import { useAdminOrders } from 'medusa-react';
 import { SimpleConsoleLogger } from "typeorm";
-import { ShoppingCartSolid } from "@medusajs/icons"
+import { ShoppingCart } from "@medusajs/icons"
 
 const Shipping = () => {
   const [selectedOrders, setSelectedOrders] = useState([])
+  const [selectAll, setSelectAll] = useState(false)
   
   const { orders, isLoading, error } = useAdminOrders({
     limit: 10,
     offset: 0,
     status: ["pending"], // pending, completed, archived, canceled, requires_action
+    payment_status: ["captured"], // captured, awaiting, not_paid, refunded, partially_refunded, canceled, requires_action
+    fulfillment_status: ["shipped", "partially_shipped"], // not_fulfilled, fulfilled, partially_fulfilled, shipped, partially_shipped, canceled, returned, partially_returned, requires_action
     fields: "id,display_id,created_at,total,payment_status,fulfillment_status,status",
     //expand: "fulfillments",
   })
@@ -24,6 +27,15 @@ const Shipping = () => {
     }
   }
   
+  const handleSelectAllChange = (checked) => {
+    setSelectAll(checked)
+    if (checked) {
+      setSelectedOrders(orders.map((order) => order.display_id));
+    } else {
+      setSelectedOrders([])
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -39,7 +51,7 @@ const Shipping = () => {
           <div className="flex items-start justify-between">
             <div>
               <h1 className="inter-xlarge-semibold text-grey-90">Packing Lists</h1>
-              <h3 className="inter-small-regular text-grey-50 pt-1.5">Let's get those products shipped.</h3>
+              <h3 className="inter-small-regular text-grey-50 pt-1.5">Let's get those products shipped. Orders below have been paid for and have tracking numbers added.</h3>
             </div>
             <div className="flex items-center space-x-2">
               <div>
@@ -52,7 +64,12 @@ const Shipping = () => {
         <Table>
           <Table.Header>
             <Table.Row>
-              <Table.HeaderCell></Table.HeaderCell>
+              <Table.HeaderCell>
+                <Checkbox
+                  onCheckedChange={handleSelectAllChange} checked={selectAll}
+                  checked={orders.every((order) => selectedOrders.includes(order.display_id))}
+                />
+              </Table.HeaderCell>
               <Table.HeaderCell>Order#</Table.HeaderCell>
               <Table.HeaderCell>Date</Table.HeaderCell>
               <Table.HeaderCell>Customer Email</Table.HeaderCell>
@@ -66,7 +83,9 @@ const Shipping = () => {
             {orders?.map((order) => (
               <Table.Row key={order.id}>
                 <Table.Cell>
-                  <Checkbox onCheckedChange={(checked) => handleCheckboxChange(checked, order.display_id)}/>
+                  <Checkbox
+                    checked={selectedOrders.includes(order.display_id)}
+                    onCheckedChange={(checked) => handleCheckboxChange(checked, order.display_id)}/>
                 </Table.Cell>
                 <Table.Cell>#{order.display_id}</Table.Cell>
                 <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
@@ -90,7 +109,7 @@ const Shipping = () => {
 export const config: RouteConfig = {
   link: {
     label: "Shipping",
-    icon: ShoppingCartSolid
+    icon: ShoppingCart
   },
 }
 
