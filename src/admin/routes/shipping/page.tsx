@@ -1,6 +1,6 @@
 import Medusa from "@medusajs/medusa-js"
 import { RouteConfig } from "@medusajs/admin"
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Checkbox, Container, Button, Table, Tabs, Text } from "@medusajs/ui"
 import { useAdminOrders } from 'medusa-react';
 import { SimpleConsoleLogger } from "typeorm";
