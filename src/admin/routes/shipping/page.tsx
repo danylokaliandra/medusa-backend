@@ -1,20 +1,22 @@
 import Medusa from "@medusajs/medusa-js"
 import { RouteConfig } from "@medusajs/admin"
-import { useState } from 'react';
-import { Checkbox, Container, Button, Table, Tabs, Text } from "@medusajs/ui"
+import { useState, useRef } from 'react';
+import { Checkbox, Container, Button, Table, Tabs, Input } from "@medusajs/ui"
 import { useAdminOrders } from 'medusa-react';
 import { SimpleConsoleLogger } from "typeorm";
 import { RocketLaunch } from "@medusajs/icons"
 
 const Shipping = () => {
+  const medusa = new Medusa({baseUrl: process.env.MEDUSA_BACKEND_URL, maxRetries: 3})
   const [selectedFulfillmentOrders, setSelectedFulfillmentOrders] = useState([])
   const [selectAllFulfillmentOrders, setSelectAllFulfillmentOrders] = useState(false)
   const [selectedShippingOrders, setSelectedShippingOrders] = useState([])
   const [selectAllShippingOrders, setSelectAllShippingOrders] = useState(false)
   const [selectedPackingOrders, setSelectedPackingOrders] = useState([])
   const [selectAllPackingOrders, setSelectAllPackingOrders] = useState(false)
-  const medusa = new Medusa({baseUrl: process.env.MEDUSA_BACKEND_URL, maxRetries: 3})
-  
+  const [tracking, setTracking] = useState(false);
+  const inputRefs = useRef([]);
+
   const { orders, isLoading, error, refetch } = useAdminOrders({
     limit: 25,
     offset: 0,
@@ -22,7 +24,7 @@ const Shipping = () => {
     payment_status: ["captured"], // captured, awaiting, not_paid, refunded, partially_refunded, canceled, requires_action
     // fulfillment_status: [] // not_fulfilled, fulfilled, partially_fulfilled, shipped, partially_shipped, canceled, returned, partially_returned, requires_action
     fields: "id,display_id,created_at,total,payment_status,fulfillment_status,status,fulfillments,sales_channel",
-    expand: "customer,fulfillments,items,sales_channel",
+    expand: "customer,fulfillments,items,sales_channel,shipping_address",
   })
   const notFulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'not_fulfilled' || order.fulfillment_status === 'canceled') : []
   const fulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'fulfilled') : []
@@ -83,6 +85,16 @@ const Shipping = () => {
     }
   };
 
+  const handleTracking = () => {
+    setTracking(true);
+  };
+
+  const handleKeyUp = (e, index) => {
+    if (e.target.value.length === 13 && inputRefs.current[index + 1]) {
+      inputRefs.current[index + 1].focus();
+    }
+  };
+
   // PACKING LOGIC
   
   const handlePackingCheckbox = (checked, orderId) => {
@@ -130,8 +142,11 @@ const Shipping = () => {
                 <Button onClick={createFulfillments} disabled={selectedFulfillmentOrders.length === 0}>Fulfill Orders{selectedFulfillmentOrders.length > 0 && ` #${selectedFulfillmentOrders.sort((a, b) => a - b).join(", ")}`}</Button>
               </Tabs.Content>
               <Tabs.Content value="shipping">
-                <Button disabled={selectedShippingOrders.length === 0}>Enter Tracking Numbers{selectedShippingOrders.length > 0 && ` for Orders #${selectedShippingOrders.sort((a, b) => a - b).join(", ")}`}</Button>
+              {!tracking ? (
+                <Button onClick={handleTracking} disabled={selectedShippingOrders.length === 0}>Enter Tracking Numbers{selectedShippingOrders.length > 0 && ` for Orders #${selectedShippingOrders.sort((a, b) => a - b).join(", ")}`}</Button>
+              ) : (
                 <Button disabled={selectedShippingOrders.length === 0}>Ship{selectedShippingOrders.length > 0 && ` for Orders #${selectedShippingOrders.sort((a, b) => a - b).join(", ")}`}</Button>
+              )}
               </Tabs.Content>
               <Tabs.Content value="packing">
                 <Button disabled={selectedPackingOrders.length === 0}>Print Packing Lists{selectedPackingOrders.length > 0 && ` for Orders #${selectedPackingOrders.sort((a, b) => a - b).join(", ")}`}</Button>
@@ -204,42 +219,73 @@ const Shipping = () => {
                   </div>
                 </div>
               </div>
-              <Table>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.HeaderCell>
-                      <Checkbox
-                        onCheckedChange={handleSelectAllShippingCheckboxes}
-                        checked={fulfilledOrders.every((order) => selectedShippingOrders.includes(order.display_id))}
-                      />
-                    </Table.HeaderCell>
-                    <Table.HeaderCell>Order#</Table.HeaderCell>
-                    <Table.HeaderCell>Sales Channel</Table.HeaderCell>
-                    <Table.HeaderCell>Date</Table.HeaderCell>
-                    <Table.HeaderCell>Customer Email</Table.HeaderCell>
-                    {/* <Table.HeaderCell>Payment Status</Table.HeaderCell> */}
-                    {/* <Table.HeaderCell>Fulfillment Status</Table.HeaderCell> */}
-                    {/* <Table.HeaderCell>Order Status</Table.HeaderCell> */}
-                    <Table.HeaderCell>Total</Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {fulfilledOrders?.map((order) => (
-                    <Table.Row key={order.id}>
-                      <Table.Cell>
+              {!tracking ? (
+                <Table>
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.HeaderCell>
                         <Checkbox
-                          checked={selectedShippingOrders.includes(order.display_id)}
-                          onCheckedChange={(checked) => handleShippingCheckbox(checked, order.display_id)}/>
-                      </Table.Cell>
-                      <Table.Cell>#{order.display_id}</Table.Cell>
-                      <Table.Cell>{order.sales_channel.name}</Table.Cell>
-                      <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
-                      <Table.Cell>{order.customer.email}</Table.Cell>
-                      <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
+                          onCheckedChange={handleSelectAllShippingCheckboxes}
+                          checked={fulfilledOrders.every((order) => selectedShippingOrders.includes(order.display_id))}
+                        />
+                      </Table.HeaderCell>
+                      <Table.HeaderCell>Order#</Table.HeaderCell>
+                      <Table.HeaderCell>Sales Channel</Table.HeaderCell>
+                      <Table.HeaderCell>Date</Table.HeaderCell>
+                      <Table.HeaderCell>Customer Email</Table.HeaderCell>
+                      {/* <Table.HeaderCell>Payment Status</Table.HeaderCell> */}
+                      {/* <Table.HeaderCell>Fulfillment Status</Table.HeaderCell> */}
+                      {/* <Table.HeaderCell>Order Status</Table.HeaderCell> */}
+                      <Table.HeaderCell>Total</Table.HeaderCell>
                     </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table>
+                  </Table.Header>
+                  <Table.Body>
+                    {fulfilledOrders?.map((order) => (
+                      <Table.Row key={order.id}>
+                        <Table.Cell>
+                          <Checkbox
+                            checked={selectedShippingOrders.includes(order.display_id)}
+                            onCheckedChange={(checked) => handleShippingCheckbox(checked, order.display_id)}/>
+                        </Table.Cell>
+                        <Table.Cell>#{order.display_id}</Table.Cell>
+                        <Table.Cell>{order.sales_channel.name}</Table.Cell>
+                        <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
+                        <Table.Cell>{order.customer.email}</Table.Cell>
+                        <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table>
+              ) : (
+                <Table>
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.HeaderCell>Order#</Table.HeaderCell>
+                      <Table.HeaderCell>Customer</Table.HeaderCell>
+                      <Table.HeaderCell>Tracking Numbers</Table.HeaderCell>
+                    </Table.Row>
+                  </Table.Header>
+                  <Table.Body>
+                    {fulfilledOrders
+                      ?.filter((order) => selectedShippingOrders.includes(order.display_id))
+                      .map((order, index) => (
+                        <Table.Row key={order.id}>
+                          <Table.Cell>#{order.display_id}</Table.Cell>
+                          <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
+                          <Table.Cell>
+                            <Input
+                              placeholder="Enter tracking number (13 digits)"
+                              maxLength={13}
+                              onKeyUp={(e) => handleKeyUp(e, index)}
+                              ref={(ref) => (inputRefs.current[index] = ref)}
+                            /> 
+                          </Table.Cell>
+                        </Table.Row>
+                      ))
+                    }
+                  </Table.Body>
+                </Table>
+              )}
             </Tabs.Content>
             {/* PACKING */}
             <Tabs.Content value="packing">
