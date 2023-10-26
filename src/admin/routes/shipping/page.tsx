@@ -40,7 +40,7 @@ const Shipping = () => {
   const handleSelectAllFulfillmentCheckboxes = (checked) => {
     setSelectAllFulfillmentOrders(checked)
     if (checked) {
-      setSelectedFulfillmentOrders(orders.map((order) => order.display_id));
+      setSelectedFulfillmentOrders(notFulfilledOrders.map((order) => order.display_id));
     } else {
       setSelectedFulfillmentOrders([])
     }
@@ -77,7 +77,7 @@ const Shipping = () => {
   const handleSelectAllShippingCheckboxes = (checked) => {
     setSelectAllShippingOrders(checked)
     if (checked) {
-      setSelectedShippingOrders(orders.map((order) => order.display_id));
+      setSelectedShippingOrders(fulfilledOrders.map((order) => order.display_id));
     } else {
       setSelectedShippingOrders([])
     }
@@ -96,7 +96,7 @@ const Shipping = () => {
   const handleSelectAllPackingCheckboxes = (checked) => {
     setSelectAllPackingOrders(checked)
     if (checked) {
-      setSelectedPackingOrders(orders.map((order) => order.display_id));
+      setSelectedPackingOrders(shippedOrders.map((order) => order.display_id));
     } else {
       setSelectedPackingOrders([])
     }
