@@ -14,7 +14,7 @@ const Shipping = () => {
   const [selectAllShippingOrders, setSelectAllShippingOrders] = useState(false)
   const [selectedPackingOrders, setSelectedPackingOrders] = useState([])
   const [selectAllPackingOrders, setSelectAllPackingOrders] = useState(false)
-  const [tracking, setTracking] = useState(false);
+  const [showTracking, setShowTracking] = useState(false);
   const inputRefs = useRef([]);
 
   const { orders, isLoading, error, refetch } = useAdminOrders({
@@ -85,8 +85,8 @@ const Shipping = () => {
     }
   };
 
-  const handleTracking = () => {
-    setTracking(true);
+  const handleShowTracking = () => {
+    setShowTracking(true);
   };
 
   const handleKeyUp = (e, index) => {
@@ -142,8 +142,8 @@ const Shipping = () => {
                 <Button onClick={createFulfillments} disabled={selectedFulfillmentOrders.length === 0}>Fulfill Orders{selectedFulfillmentOrders.length > 0 && ` #${selectedFulfillmentOrders.sort((a, b) => a - b).join(", ")}`}</Button>
               </Tabs.Content>
               <Tabs.Content value="shipping">
-              {!tracking ? (
-                <Button onClick={handleTracking} disabled={selectedShippingOrders.length === 0}>Enter Tracking Numbers{selectedShippingOrders.length > 0 && ` for Orders #${selectedShippingOrders.sort((a, b) => a - b).join(", ")}`}</Button>
+              {!showTracking ? (
+                <Button onClick={handleShowTracking} disabled={selectedShippingOrders.length === 0}>Enter Tracking Numbers{selectedShippingOrders.length > 0 && ` for Orders #${selectedShippingOrders.sort((a, b) => a - b).join(", ")}`}</Button>
               ) : (
                 <Button disabled={selectedShippingOrders.length === 0}>Ship{selectedShippingOrders.length > 0 && ` for Orders #${selectedShippingOrders.sort((a, b) => a - b).join(", ")}`}</Button>
               )}
@@ -173,11 +173,11 @@ const Shipping = () => {
                       />
                     </Table.HeaderCell>
                     <Table.HeaderCell>Order#</Table.HeaderCell>
-                    <Table.HeaderCell>Sales Channel</Table.HeaderCell>
                     <Table.HeaderCell>Date</Table.HeaderCell>
-                    <Table.HeaderCell>Customer Email</Table.HeaderCell>
+                    <Table.HeaderCell>Placed By</Table.HeaderCell>
                     <Table.HeaderCell>Items</Table.HeaderCell>
                     <Table.HeaderCell>Total</Table.HeaderCell>
+                    <Table.HeaderCell>Sales Channel</Table.HeaderCell>
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
@@ -189,9 +189,8 @@ const Shipping = () => {
                           onCheckedChange={(checked) => handleFulfillmentCheckbox(checked, order.display_id)}/>
                       </Table.Cell>
                       <Table.Cell>#{order.display_id}</Table.Cell>
-                      <Table.Cell>{order.sales_channel.name}</Table.Cell>
                       <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
-                      <Table.Cell>{order.customer.email}</Table.Cell>
+                      <Table.Cell>{order.customer.first_name} {order.customer.last_name}</Table.Cell>
                       <Table.Cell>
                         {order.items.map((item) => (
                           <div key={item.variant_id}>
@@ -200,6 +199,7 @@ const Shipping = () => {
                         ))}
                       </Table.Cell>
                       <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
+                      <Table.Cell>{order.sales_channel.name}</Table.Cell>
                     </Table.Row>
                   ))}
                 </Table.Body>
@@ -219,7 +219,7 @@ const Shipping = () => {
                   </div>
                 </div>
               </div>
-              {!tracking ? (
+              {!showTracking ? (
                 <Table>
                   <Table.Header>
                     <Table.Row>
@@ -230,13 +230,13 @@ const Shipping = () => {
                         />
                       </Table.HeaderCell>
                       <Table.HeaderCell>Order#</Table.HeaderCell>
-                      <Table.HeaderCell>Sales Channel</Table.HeaderCell>
                       <Table.HeaderCell>Date</Table.HeaderCell>
-                      <Table.HeaderCell>Customer Email</Table.HeaderCell>
+                      <Table.HeaderCell>Shipping To</Table.HeaderCell>
                       {/* <Table.HeaderCell>Payment Status</Table.HeaderCell> */}
                       {/* <Table.HeaderCell>Fulfillment Status</Table.HeaderCell> */}
                       {/* <Table.HeaderCell>Order Status</Table.HeaderCell> */}
                       <Table.HeaderCell>Total</Table.HeaderCell>
+                      <Table.HeaderCell>Sales Channel</Table.HeaderCell>
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
@@ -248,10 +248,10 @@ const Shipping = () => {
                             onCheckedChange={(checked) => handleShippingCheckbox(checked, order.display_id)}/>
                         </Table.Cell>
                         <Table.Cell>#{order.display_id}</Table.Cell>
-                        <Table.Cell>{order.sales_channel.name}</Table.Cell>
                         <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
-                        <Table.Cell>{order.customer.email}</Table.Cell>
+                        <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
                         <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
+                        <Table.Cell>{order.sales_channel.name}</Table.Cell>
                       </Table.Row>
                     ))}
                   </Table.Body>
@@ -261,7 +261,8 @@ const Shipping = () => {
                   <Table.Header>
                     <Table.Row>
                       <Table.HeaderCell>Order#</Table.HeaderCell>
-                      <Table.HeaderCell>Customer</Table.HeaderCell>
+                      <Table.HeaderCell>Date</Table.HeaderCell>
+                      <Table.HeaderCell>Shipping To</Table.HeaderCell>
                       <Table.HeaderCell>Tracking Numbers</Table.HeaderCell>
                     </Table.Row>
                   </Table.Header>
@@ -271,6 +272,7 @@ const Shipping = () => {
                       .map((order, index) => (
                         <Table.Row key={order.id}>
                           <Table.Cell>#{order.display_id}</Table.Cell>
+                          <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
                           <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
                           <Table.Cell>
                             <Input
@@ -306,13 +308,13 @@ const Shipping = () => {
                       />
                     </Table.HeaderCell>
                     <Table.HeaderCell>Order#</Table.HeaderCell>
-                    <Table.HeaderCell>Sales Channel</Table.HeaderCell>
                     <Table.HeaderCell>Date</Table.HeaderCell>
                     <Table.HeaderCell>Customer Email</Table.HeaderCell>
                     {/* <Table.HeaderCell>Payment Status</Table.HeaderCell> */}
                     {/* <Table.HeaderCell>Fulfillment Status</Table.HeaderCell> */}
                     {/* <Table.HeaderCell>Order Status</Table.HeaderCell> */}
                     <Table.HeaderCell>Total</Table.HeaderCell>
+                    <Table.HeaderCell>Sales Channel</Table.HeaderCell>
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
@@ -324,13 +326,13 @@ const Shipping = () => {
                           onCheckedChange={(checked) => handlePackingCheckbox(checked, order.display_id)}/>
                       </Table.Cell>
                       <Table.Cell>#{order.display_id}</Table.Cell>
-                      <Table.Cell>{order.sales_channel.name}</Table.Cell>
                       <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
                       <Table.Cell>{order.customer.email}</Table.Cell>
                       {/* <Table.Cell>{order.payment_status}</Table.Cell> */}
                       {/* <Table.Cell>{order.fulfillment_status}</Table.Cell> */}
                       {/* <Table.Cell>{order.status}</Table.Cell> */}
                       <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
+                      <Table.Cell>{order.sales_channel.name}</Table.Cell>
                       {/* rows not in use yet
                       <Table.Cell>{JSON.stringify(order.fulfillments)}</Table.Cell>
                       */}
