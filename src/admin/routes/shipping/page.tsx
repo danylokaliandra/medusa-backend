@@ -1,6 +1,6 @@
 import Medusa from "@medusajs/medusa-js"
 import { RouteConfig } from "@medusajs/admin"
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Checkbox, Container, Button, Table, Tabs, Input } from "@medusajs/ui"
 import { useAdminOrders } from 'medusa-react';
 import { SimpleConsoleLogger } from "typeorm";
@@ -15,8 +15,10 @@ const Shipping = () => {
   const [selectedPackingOrders, setSelectedPackingOrders] = useState([])
   const [selectAllPackingOrders, setSelectAllPackingOrders] = useState(false)
   const [showTracking, setShowTracking] = useState(false);
-  const [trackingNumbers, setTrackingNumbers] = useState([]);
-  const inputRefs = useRef([]);
+  const [trackingNumbers, setTrackingNumbers] = useState(
+    new Array(selectedShipping.length).fill({ fulfillmentId: "", trackingNumber: "" })
+  );
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const { orders, isLoading, error, refetch } = useAdminOrders({
     limit: 25,
@@ -29,11 +31,10 @@ const Shipping = () => {
   })
   const notFulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'not_fulfilled' || order.fulfillment_status === 'canceled') : []
   const fulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'fulfilled' || order.fulfillment_status === 'partially_fulfilled') : []
-  const fulfilledOrderFulfillments = fulfilledOrders.flatMap((order) => order.fulfillments)
-  //console.log("fulfilledOrders",fulfilledOrders)
+  const fulfilledOrderFulfillments = fulfilledOrders
+    .flatMap((order) => order.fulfillments)
+    .filter((fulfillment) => fulfillment.canceled_at === null);
   const shippedOrders = orders ? orders.filter(order => order.fulfillment_status === 'shipped') : []
-  console.log("trackingNumbers",JSON.stringify(trackingNumbers))
-  console.log("selectedShipping",JSON.stringify(selectedShipping))
 
   // FULFILLMENTS LOGIC
   const handleFulfillmentCheckbox = (checked, orderId) => {
@@ -107,13 +108,11 @@ const Shipping = () => {
       trackingNumber: e.target.value,
     }
     setTrackingNumbers(newTrackingNumbers)
-    if (e.target.value.length === 13 && inputRefs.current[index + 1]) {
-      inputRefs.current[index + 1].focus()
-    }
+    // TODO: get auto-advance to work
+    // if (e.target.value.length === 13) { ADD LOGIC }
   }
 
   // PACKING LOGIC
-  
   const handlePackingCheckbox = (checked, orderId) => {
     if (checked) {
       setSelectedPackingOrders([...selectedPackingOrders, orderId])
@@ -165,7 +164,7 @@ const Shipping = () => {
                 <div>
                   <Button onClick={handleShowTracking}>Back</Button>
                   <Button disabled={selectedShipping.length === 0 || selectedShipping.some((fulfillmentId) => {
-                    const trackingInfo = trackingNumbers.find((tn) => tn.fulfillmentId === fulfillmentId);
+                    const trackingInfo = trackingNumbers.find((tn) => tn && tn.fulfillmentId === fulfillmentId);
                     return !trackingInfo || trackingInfo.trackingNumber.length !== 13;
                   })}>Ship</Button>
                 </div>
@@ -267,7 +266,6 @@ const Shipping = () => {
                           const fulfillmentItem = fulfillment.items.find((item) => item.item_id === orderItem.id);
                           return !fulfillmentItem || fulfillmentItem.quantity !== orderItem.quantity;
                         })
-
                         return (
                           <Table.Row key={fulfillment.id} className={isPartialShipment ? "bg-ui-bg-highlight-hover" : "white"}>
                           <Table.Cell>
@@ -283,7 +281,6 @@ const Shipping = () => {
                             {fulfillment.items.map((item) => {
                               const orderItem = order.items.find((oi) => oi.id === item.item_id);
                               if (!orderItem) return null; // Skip if order item not found
-
                               return (
                                 <div key={item.item_id}>
                                   {item.quantity} x {orderItem.title} ({orderItem.variant.title})
@@ -312,10 +309,10 @@ const Shipping = () => {
                   </Table.Header>
                   <Table.Body>
                     {fulfilledOrders?.flatMap((order) =>
-                      order.fulfillments.map((fulfillment, index) => {
+                      order.fulfillments.map((fulfillment,index) => {
                         if (fulfillment.canceled_at) { return null } // Skip if fulfillment cancelled
                         if (!selectedShipping.includes(fulfillment.id)) { return null } // Skip if fulfillment is not selected
-                        return (
+                        const row = (
                           <Table.Row key={fulfillment.id}>
                             <Table.Cell>#{order.display_id}</Table.Cell>
                             <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
@@ -336,12 +333,15 @@ const Shipping = () => {
                               <Input
                                 placeholder="Enter tracking number (13 digits)"
                                 maxLength={13}
-                                onKeyUp={(e) => handleTrackingNumbers(e, index, fulfillment.id)}
-                                ref={(ref) => (inputRefs.current[index] = ref)}
+                                onFocus={() => {
+                                  setCurrentIndex(fulfilledOrderFulfillments.findIndex(f => f.id === fulfillment.id));
+                                }}
+                                onKeyUp={(e) => handleTrackingNumbers(e, currentIndex, fulfillment.id)}
                               /> 
                             </Table.Cell>
                           </Table.Row>
-                        );
+                        )
+                        return row
                       })
                     )}
                   </Table.Body>
@@ -369,9 +369,6 @@ const Shipping = () => {
                     <Table.HeaderCell>Order#</Table.HeaderCell>
                     <Table.HeaderCell>Date</Table.HeaderCell>
                     <Table.HeaderCell>Customer Email</Table.HeaderCell>
-                    {/* <Table.HeaderCell>Payment Status</Table.HeaderCell> */}
-                    {/* <Table.HeaderCell>Fulfillment Status</Table.HeaderCell> */}
-                    {/* <Table.HeaderCell>Order Status</Table.HeaderCell> */}
                     <Table.HeaderCell>Total</Table.HeaderCell>
                     <Table.HeaderCell>Sales Channel</Table.HeaderCell>
                   </Table.Row>
@@ -387,14 +384,8 @@ const Shipping = () => {
                       <Table.Cell>#{order.display_id}</Table.Cell>
                       <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
                       <Table.Cell>{order.customer.email}</Table.Cell>
-                      {/* <Table.Cell>{order.payment_status}</Table.Cell> */}
-                      {/* <Table.Cell>{order.fulfillment_status}</Table.Cell> */}
-                      {/* <Table.Cell>{order.status}</Table.Cell> */}
                       <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
                       <Table.Cell>{order.sales_channel.name}</Table.Cell>
-                      {/* rows not in use yet
-                      <Table.Cell>{JSON.stringify(order.fulfillments)}</Table.Cell>
-                      */}
                     </Table.Row>
                   ))}
                 </Table.Body>
