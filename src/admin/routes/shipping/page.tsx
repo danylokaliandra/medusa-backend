@@ -15,6 +15,7 @@ const Shipping = () => {
   const [selectedPackingOrders, setSelectedPackingOrders] = useState([])
   const [selectAllPackingOrders, setSelectAllPackingOrders] = useState(false)
   const [showTracking, setShowTracking] = useState(false);
+  const [trackingNumbers, setTrackingNumbers] = useState([]);
   const inputRefs = useRef([]);
 
   const { orders, isLoading, error, refetch } = useAdminOrders({
@@ -29,8 +30,10 @@ const Shipping = () => {
   const notFulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'not_fulfilled' || order.fulfillment_status === 'canceled') : []
   const fulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'fulfilled' || order.fulfillment_status === 'partially_fulfilled') : []
   const fulfilledOrderFulfillments = fulfilledOrders.flatMap((order) => order.fulfillments)
-  console.log("fulfilledOrders",fulfilledOrders)
+  //console.log("fulfilledOrders",fulfilledOrders)
   const shippedOrders = orders ? orders.filter(order => order.fulfillment_status === 'shipped') : []
+  console.log("trackingNumbers",JSON.stringify(trackingNumbers))
+  console.log("selectedShipping",JSON.stringify(selectedShipping))
 
   // FULFILLMENTS LOGIC
   const handleFulfillmentCheckbox = (checked, orderId) => {
@@ -79,32 +82,43 @@ const Shipping = () => {
   }
 
   const handleSelectAllShippingCheckboxes = (checked) => {
-    setSelectAllShipping(checked);
+    setSelectAllShipping(checked)
     if (checked) {
       const allFulfillmentIds = fulfilledOrderFulfillments.map((fulfillment) => fulfillment.id)
-      setSelectedShipping(allFulfillmentIds);
+      setSelectedShipping(allFulfillmentIds)
     } else {
-      setSelectedShipping([]);
+      setSelectedShipping([])
     }
-  };
+  }
 
   const handleShowTracking = () => {
-    setShowTracking(true);
-  };
-
-  const handleKeyUp = (e, index) => {
-    if (e.target.value.length === 13 && inputRefs.current[index + 1]) {
-      inputRefs.current[index + 1].focus();
+    if (!showTracking) {
+      setShowTracking(true)
     }
-  };
+    else {
+      setShowTracking(false)
+    }
+  }
+
+  const handleTrackingNumbers = (e, index, fulfillmentId) => {
+    const newTrackingNumbers = [...trackingNumbers]
+    newTrackingNumbers[index] = {
+      fulfillmentId: fulfillmentId,
+      trackingNumber: e.target.value,
+    }
+    setTrackingNumbers(newTrackingNumbers)
+    if (e.target.value.length === 13 && inputRefs.current[index + 1]) {
+      inputRefs.current[index + 1].focus()
+    }
+  }
 
   // PACKING LOGIC
   
   const handlePackingCheckbox = (checked, orderId) => {
     if (checked) {
-      setSelectedPackingOrders([...selectedPackingOrders, orderId]);
+      setSelectedPackingOrders([...selectedPackingOrders, orderId])
     } else {
-      setSelectedPackingOrders(selectedPackingOrders.filter((id) => id !== orderId));
+      setSelectedPackingOrders(selectedPackingOrders.filter((id) => id !== orderId))
     }
   }
 
@@ -119,12 +133,12 @@ const Shipping = () => {
 
   // DATA LOADING
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>
   }
 
   // ERROR HANDLING
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return <div>Error: {error.message}</div>
   }
 
   return (
@@ -148,7 +162,13 @@ const Shipping = () => {
               {!showTracking ? (
                 <Button onClick={handleShowTracking} disabled={selectedShipping.length === 0}>Enter Tracking Numbers</Button>
               ) : (
-                <Button disabled={selectedShipping.length === 0}>Ship</Button>
+                <div>
+                  <Button onClick={handleShowTracking}>Back</Button>
+                  <Button disabled={selectedShipping.length === 0 || selectedShipping.some((fulfillmentId) => {
+                    const trackingInfo = trackingNumbers.find((tn) => tn.fulfillmentId === fulfillmentId);
+                    return !trackingInfo || trackingInfo.trackingNumber.length !== 13;
+                  })}>Ship</Button>
+                </div>
               )}
               </Tabs.Content>
               <Tabs.Content value="packing">
@@ -316,7 +336,7 @@ const Shipping = () => {
                               <Input
                                 placeholder="Enter tracking number (13 digits)"
                                 maxLength={13}
-                                onKeyUp={(e) => handleKeyUp(e, index)}
+                                onKeyUp={(e) => handleTrackingNumbers(e, index, fulfillment.id)}
                                 ref={(ref) => (inputRefs.current[index] = ref)}
                               /> 
                             </Table.Cell>
