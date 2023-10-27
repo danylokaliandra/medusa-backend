@@ -27,7 +27,8 @@ const Shipping = () => {
     expand: "customer,fulfillments,items,sales_channel,shipping_address",
   })
   const notFulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'not_fulfilled' || order.fulfillment_status === 'canceled') : []
-  const fulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'fulfilled') : []
+  const fulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'fulfilled' || order.fulfillment_status === 'partially_fulfilled') : []
+  console.log("fulfilledOrders",fulfilledOrders)
   const shippedOrders = orders ? orders.filter(order => order.fulfillment_status === 'shipped') : []
 
   // FULFILLMENTS LOGIC
@@ -207,7 +208,7 @@ const Shipping = () => {
             </Tabs.Content>
             {/* SHIPPING */}
             <Tabs.Content value="shipping">
-              {/* TO DO:
+              {/* TODO:
                 - Entry mode, can enter tracking numbers in order, auto move to next field on entry
                 - When done, a 'ship all' button to ship em all
                 - Save tracking numbers in case page fails...
@@ -215,7 +216,7 @@ const Shipping = () => {
               <div className="px-xlarge py-large border-grey-20 border-b border-solid">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="inter-small-regular text-grey-50 pt-1.5">Orders below have been paid for and are away tracking number entry for shipment.</h3>
+                    <h3 className="inter-small-regular text-grey-50 pt-1.5">Orders below have been paid for and are ready for tracking number assignment. Rows in blue are partial fulfillments.</h3>
                   </div>
                 </div>
               </div>
@@ -240,20 +241,31 @@ const Shipping = () => {
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
-                    {fulfilledOrders?.map((order) => (
-                      <Table.Row key={order.id}>
-                        <Table.Cell>
-                          <Checkbox
-                            checked={selectedShippingOrders.includes(order.display_id)}
-                            onCheckedChange={(checked) => handleShippingCheckbox(checked, order.display_id)}/>
-                        </Table.Cell>
-                        <Table.Cell>#{order.display_id}</Table.Cell>
-                        <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
-                        <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
-                        <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
-                        <Table.Cell>{order.sales_channel.name}</Table.Cell>
-                      </Table.Row>
-                    ))}
+                    {fulfilledOrders?.flatMap((order) =>
+                      order.fulfillments.map((fulfillment) => {
+                        if (fulfillment.canceled_at) { return null } // Skip if fulfillment cancelled
+                        const isPartialShipment = order.items.some((orderItem) => {
+                          const fulfillmentItem = fulfillment.items.find((item) => item.item_id === orderItem.id);
+                          return !fulfillmentItem || fulfillmentItem.quantity !== orderItem.quantity;
+                        })
+
+                        return (
+                          <Table.Row key={fulfillment.id} className={isPartialShipment ? "bg-ui-bg-highlight-hover" : "white"}>
+                          <Table.Cell>
+                            <Checkbox
+                              checked={selectedShippingOrders.includes(order.display_id)}
+                              onCheckedChange={(checked) => handleShippingCheckbox(checked, order.display_id)}
+                            />
+                          </Table.Cell>
+                          <Table.Cell>#{order.display_id}</Table.Cell>
+                          <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
+                          <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
+                          <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
+                          <Table.Cell>{order.sales_channel.name}</Table.Cell>
+                        </Table.Row>
+                        )
+                      })
+                    )}
                   </Table.Body>
                 </Table>
               ) : (
