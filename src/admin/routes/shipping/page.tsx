@@ -69,11 +69,11 @@ const Shipping = () => {
   }
 
   // SHIPPING LOGIC
-  const handleShippingCheckbox = (checked, orderId) => {
+  const handleShippingCheckbox = (checked, fulfillmentId) => {
     if (checked) {
-      setSelectedShippingOrders([...selectedShippingOrders, orderId]);
+      setSelectedShippingOrders([...selectedShippingOrders, fulfillmentId]);
     } else {
-      setSelectedShippingOrders(selectedShippingOrders.filter((id) => id !== orderId));
+      setSelectedShippingOrders(selectedShippingOrders.filter((id) => id !== fulfillmentId));
     }
   }
 
@@ -253,8 +253,8 @@ const Shipping = () => {
                           <Table.Row key={fulfillment.id} className={isPartialShipment ? "bg-ui-bg-highlight-hover" : "white"}>
                           <Table.Cell>
                             <Checkbox
-                              checked={selectedShippingOrders.includes(order.display_id)}
-                              onCheckedChange={(checked) => handleShippingCheckbox(checked, order.display_id)}
+                              checked={selectedShippingOrders.includes(fulfillment.id)}
+                              onCheckedChange={(checked) => handleShippingCheckbox(checked, fulfillment.id)}
                             />
                           </Table.Cell>
                           <Table.Cell>#{order.display_id}</Table.Cell>
