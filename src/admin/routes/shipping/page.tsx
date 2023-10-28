@@ -8,32 +8,36 @@ import { RocketLaunch } from "@medusajs/icons"
 
 const Shipping = () => {
   const medusa = new Medusa({baseUrl: process.env.MEDUSA_BACKEND_URL, maxRetries: 3})
+  // state variables
   const [selectedFulfillmentOrders, setSelectedFulfillmentOrders] = useState([])
   const [selectedShipping, setSelectedShipping] = useState([])
   const [selectedPackingOrders, setSelectedPackingOrders] = useState([])
   const [showTracking, setShowTracking] = useState(false);
-  const [trackingNumbers, setTrackingNumbers] = useState(
-    new Array(selectedShipping.length).fill({ fulfillmentId: "", trackingNumber: "" })
-  );
+  const [trackingNumbers, setTrackingNumbers] = useState(new Array(selectedShipping.length).fill({ fulfillmentId: "", trackingNumber: "" }));
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // overall orders
   const { orders, isLoading, error, refetch } = useAdminOrders({
     limit: 25,
     offset: 0,
     status: ["pending"], // pending, completed, archived, canceled, requires_action
     payment_status: ["captured"], // captured, awaiting, not_paid, refunded, partially_refunded, canceled, requires_action
     // fulfillment_status: [] // not_fulfilled, fulfilled, partially_fulfilled, shipped, partially_shipped, canceled, returned, partially_returned, requires_action
-    fields: "id,display_id,created_at,total,payment_status,fulfillment_status,status,fulfillments,sales_channel",
-    expand: "customer,fulfillments,items,sales_channel,shipping_address",
+    fields: "id,display_id,created_at,total,payment_status,fulfillment_status,status,fulfillments,sales_channel,edits",
+    expand: "customer,fulfillments,items,sales_channel,shipping_address,edits",
   })
+  // for use in fulfillment
   const notFulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'not_fulfilled' || order.fulfillment_status === 'canceled') : []
+  // for use in shipping
   const fulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'fulfilled' || order.fulfillment_status === 'partially_fulfilled' || order.fulfillment_status === 'partially_shipped') : []
   const fulfilledOrderFulfillments = fulfilledOrders
     .flatMap((order) => order.fulfillments)
     .filter((fulfillment) => fulfillment.canceled_at === null && fulfillment.shipped_at === null)
-  const orderedSelectedShipping = fulfilledOrders.flatMap(order => order.fulfillments.filter(fulfillment => selectedShipping.includes(fulfillment.id)));
+  const fulfilledOrdersSelected = fulfilledOrders.flatMap(order => order.fulfillments.filter(fulfillment => selectedShipping.includes(fulfillment.id)));
+  const inputRefs = useRef(fulfilledOrdersSelected.map(() => React.createRef<HTMLInputElement>()));
+  // for use in packing
   const shippedOrders = orders ? orders.filter(order => order.fulfillment_status === 'shipped') : []
-  const inputRefs = useRef(orderedSelectedShipping.map(() => React.createRef<HTMLInputElement>()));
+  const shippedOrdersSelected = shippedOrders.filter(order => selectedPackingOrders.includes(order.display_id));
 
   // FULFILLMENTS LOGIC
   const handleFulfillmentCheckbox = (checked, orderId) => {
@@ -147,6 +151,169 @@ const Shipping = () => {
     }
   };
 
+  const generatePackingList = async () => {
+    let html = '';
+    shippedOrdersSelected.forEach(order => {
+      // Order Header
+      html += `
+        <table cellspacing="0" cellpadding="2" border="0" style="width: 7.5in">
+          <thead>
+            <tr>
+              <th colspan="3">
+                Packing Slip
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="2" style="width: 4.5in" class="store-info">
+                <div class="company-name">
+                  ${order.sales_channel.metadata?.store_name ?? "UNKNOWN"}
+                <div>
+                  ${order.sales_channel.metadata?.store_url ?? "UNKNOWN"}</div>
+              </td>
+              <td style="width: 3.5in;" align="right" valign="top">
+                <img src="${order.sales_channel.metadata?.store_logo ?? "UNKNOWN"}" />
+              </td>
+            </tr>
+            <tr>
+              <td style="height: 0.15in">
+              </td>
+            </tr>
+            <tr>
+              <td align="right" style="width: 1in">
+                <b>Ship To:</b>
+              </td>
+              <td style="width: 3.5in; font-size: 14px">
+                <div>${order.shipping_address.first_name} ${order.shipping_address.last_name}</div>
+                <div>${order.shipping_address.address_1}</div>
+              </td>
+              <td style="width: 2.5in">
+                <table cellspacing="0" border="0" class="order-info">
+                  <tr>
+                    <td align="right" class="label first">
+                      Order #
+                    </td>
+                    <td>
+                      ${order.display_id}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="right" class="label">
+                      Date
+                    </td>
+                    <td>
+                      ${new Date(order.created_at).toDateString()}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="right" class="label">
+                      User
+                    </td>
+                    <td>
+                      ${order.customer.email}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="right" class="label last">
+                      Ship Date
+                    </td>
+                    <td>
+                      ${new Date(order.fulfillments[0].shipped_at).toDateString()}
+                      /* TO DO: determine how to get shipped date for overall order, currently hacking with first fulfillment order date */
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+
+      // Order Items Header
+      html += `
+        <tr>
+          <th align="left" style="width:1.5in" class="sku">
+            Item
+         </th>
+          <th align="left">
+            Description
+          </th>
+          <th align="right" style="width:0.75in" class="price">
+            Price
+          </th>
+          <th align="center" style="width:0.75in">
+            Qty
+          </th>
+          <th align="right" style="width:0.75in" class="price">
+            Ext. Price
+          </th>
+        </tr>
+      `;
+
+
+      // Order Items (inside each order)
+      order.items.forEach(item => {
+        html += `
+          <tr>
+            <td class="sku">${item.variant.sku}</td>
+            <td>${item.title}<br>${item.variant.title}</td>
+            <td align="right" class="price">${(item.unit_price / 100).toFixed(2)}</td>
+            <td align="center" style="font-weight:bold;font-size:14px">${item.quantity}</td>
+            <td align="right" class="price">${((item.unit_price * item.quantity) / 100).toFixed(2)}</td>
+          </tr>
+        `;
+      });
+
+      // Order Footer
+      html += `
+        <table cellspacing=0 cellpadding="2" border="0" style="width:100%" class="footer">
+          <tbody>
+            <tr>
+              <td rowspan="4" class="notes" >
+                ${order.edits[0]}
+                /* TODO: determine how to get internal notes to show */
+              </td>
+              <td align="right" style="width:1in" class="label price">
+                Sub Total:
+              </td>
+              <td style="width:0.75in" align="right" class="price">${(order.subtotal / 100).toFixed(2)}</td>
+            </tr>
+            <tr class="tax">
+              <td align="right" class="label price">
+                Tax:
+              </td>
+              <td style="width:0.75in" align="right" class="price">${(order.tax_total / 100).toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td align="right" class="label price">
+                Shipping:
+              </td>
+              <td style="width:0.75in" align="right" class="price">${(order.shipping_total / 100).toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td align="right" class="label price">
+                Total:
+              </td>
+              <td style="width:0.75in" align="right" class="price">${(order.total / 100).toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p align="center"><barcode size="small">${order.display_id}</barcode></p>
+      `;
+
+    });
+
+    // Create a new Blob from the HTML string
+    const blob = new Blob([html], { type: 'text/html' });
+
+    // Create a URL for the Blob
+    const url = URL.createObjectURL(blob);
+
+    // Open the URL in a new tab
+    window.open(url, '_blank');
+  }
+
   // DATA LOADING
   if (isLoading) {
     return <div>Loading...</div>
@@ -188,7 +355,9 @@ const Shipping = () => {
               )}
               </Tabs.Content>
               <Tabs.Content value="packing">
-                <Button disabled={selectedPackingOrders.length === 0}>Print Packing Lists{selectedPackingOrders.length > 0 && ` for Orders #${selectedPackingOrders.sort((a, b) => a - b).join(", ")}`}</Button>
+                <Button onClick={generatePackingList}
+                  disabled={selectedPackingOrders.length === 0}>Print Packing Lists{selectedPackingOrders.length > 0 && ` for Orders #${selectedPackingOrders.sort((a, b) => a - b).join(", ")}`}
+                </Button>
               </Tabs.Content>
             </div>
           </div>
@@ -343,7 +512,7 @@ const Shipping = () => {
                             <Table.Cell>
                               <Input
                                 ref={(ref) => {
-                                  const index = orderedSelectedShipping.findIndex(
+                                  const index = fulfilledOrdersSelected.findIndex(
                                     (f) => f.id === fulfillment.id
                                   )
                                   if (ref) {
@@ -354,7 +523,7 @@ const Shipping = () => {
                                 placeholder="Enter tracking number (13 digits)"
                                 maxLength={13}
                                 onFocus={() => {
-                                  setCurrentIndex(orderedSelectedShipping.findIndex(f => f.id === fulfillment.id));
+                                  setCurrentIndex(fulfilledOrdersSelected.findIndex(f => f.id === fulfillment.id));
                                 }}
                                 onKeyUp={(e) => handleTrackingNumbers(e, currentIndex, order.id, fulfillment.id)}
                               /> 
