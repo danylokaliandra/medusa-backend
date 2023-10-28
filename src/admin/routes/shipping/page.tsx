@@ -31,7 +31,7 @@ const Shipping = () => {
     expand: "customer,fulfillments,items,sales_channel,shipping_address",
   })
   const notFulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'not_fulfilled' || order.fulfillment_status === 'canceled') : []
-  const fulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'fulfilled' || order.fulfillment_status === 'partially_fulfilled') : []
+  const fulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'fulfilled' || order.fulfillment_status === 'partially_fulfilled' || order.fulfillment_status === 'partially_shipped') : []
   const fulfilledOrderFulfillments = fulfilledOrders
     .flatMap((order) => order.fulfillments)
     .filter((fulfillment) => fulfillment.canceled_at === null);
@@ -104,9 +104,10 @@ const Shipping = () => {
     }
   }
 
-  const handleTrackingNumbers = (e, index, fulfillmentId) => {
+  const handleTrackingNumbers = (e, index, orderId, fulfillmentId) => {
     const newTrackingNumbers = [...trackingNumbers]
     newTrackingNumbers[index] = {
+      orderId: orderId,
       fulfillmentId: fulfillmentId,
       trackingNumber: e.target.value,
     }
@@ -115,6 +116,25 @@ const Shipping = () => {
       inputRefs.current[index+1].focus();
     }
   }
+
+  const createShipments = async () => {
+    // Iterate over each fulfillment and tracking number
+    // TODO: extend this to handle multiple tracking orders (requires modifying the input page as well)
+    for (const { orderId, fulfillmentId, trackingNumber } of trackingNumbers) {
+      try {
+        // Make the API request to create the shipment
+        await medusa.admin.orders.createShipment(orderId, {
+          fulfillment_id: fulfillmentId,
+          tracking_numbers: [trackingNumber],
+          no_notification: false,
+        });
+      } catch (error) {
+        console.error("Error creating shipment:", error);
+      }
+    }
+    // refetch orders
+    refetch()
+  };
 
   // PACKING LOGIC
   const handlePackingCheckbox = (checked, orderId) => {
@@ -167,7 +187,7 @@ const Shipping = () => {
               ) : (
                 <div>
                   <Button onClick={handleShowTracking}>Back</Button>
-                  <Button disabled={selectedShipping.length === 0 || selectedShipping.some((fulfillmentId) => {
+                  <Button onClick={createShipments} disabled={selectedShipping.length === 0 || selectedShipping.some((fulfillmentId) => {
                     const trackingInfo = trackingNumbers.find((tn) => tn && tn.fulfillmentId === fulfillmentId);
                     return !trackingInfo || trackingInfo.trackingNumber.length !== 13;
                   })}>Ship</Button>
@@ -265,36 +285,36 @@ const Shipping = () => {
                   <Table.Body>
                     {fulfilledOrders?.flatMap((order) =>
                       order.fulfillments.map((fulfillment) => {
-                        if (fulfillment.canceled_at) { return null } // Skip if fulfillment cancelled
+                        if (fulfillment.canceled_at || fulfillment.shipped_at) { return null } // Skip if fulfillment cancelled or shipped
                         const isPartialShipment = order.items.some((orderItem) => {
                           const fulfillmentItem = fulfillment.items.find((item) => item.item_id === orderItem.id);
                           return !fulfillmentItem || fulfillmentItem.quantity !== orderItem.quantity;
                         })
                         return (
                           <Table.Row key={fulfillment.id} className={isPartialShipment ? "bg-ui-bg-highlight-hover" : "white"}>
-                          <Table.Cell>
-                            <Checkbox
-                              checked={selectedShipping.includes(fulfillment.id)}
-                              onCheckedChange={(checked) => handleShippingCheckbox(checked, fulfillment.id)}
-                            />
-                          </Table.Cell>
-                          <Table.Cell>#{order.display_id}</Table.Cell>
-                          <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
-                          <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
-                          <Table.Cell>
-                            {fulfillment.items.map((item) => {
-                              const orderItem = order.items.find((oi) => oi.id === item.item_id);
-                              if (!orderItem) return null; // Skip if order item not found
-                              return (
-                                <div key={item.item_id}>
-                                  {item.quantity} x {orderItem.title} ({orderItem.variant.title})
-                                </div>
-                              );
-                            })}
-                          </Table.Cell>
-                          <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
-                          <Table.Cell>{order.sales_channel.name}</Table.Cell>
-                        </Table.Row>
+                            <Table.Cell>
+                              <Checkbox
+                                checked={selectedShipping.includes(fulfillment.id)}
+                                onCheckedChange={(checked) => handleShippingCheckbox(checked, fulfillment.id)}
+                              />
+                            </Table.Cell>
+                            <Table.Cell>#{order.display_id}</Table.Cell>
+                            <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
+                            <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
+                            <Table.Cell>
+                              {fulfillment.items.map((item) => {
+                                const orderItem = order.items.find((oi) => oi.id === item.item_id);
+                                if (!orderItem) return null; // Skip if order item not found
+                                return (
+                                  <div key={item.item_id}>
+                                    {item.quantity} x {orderItem.title} ({orderItem.variant.title})
+                                  </div>
+                                );
+                              })}
+                            </Table.Cell>
+                            <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
+                            <Table.Cell>{order.sales_channel.name}</Table.Cell>
+                          </Table.Row>
                         )
                       })
                     )}
@@ -331,7 +351,7 @@ const Shipping = () => {
                                 </div>
                               );
                             })}
-                          </Table.Cell>
+                            </Table.Cell>
                             <Table.Cell>
                               <Input
                                 ref={(ref) => (inputRefs.current[orderedSelectedShipping.findIndex(f => f.id === fulfillment.id)] = ref)}
@@ -340,7 +360,7 @@ const Shipping = () => {
                                 onFocus={() => {
                                   setCurrentIndex(orderedSelectedShipping.findIndex(f => f.id === fulfillment.id));
                                 }}
-                                onKeyUp={(e) => handleTrackingNumbers(e, currentIndex, fulfillment.id)}
+                                onKeyUp={(e) => handleTrackingNumbers(e, currentIndex, order.id, fulfillment.id)}
                               /> 
                             </Table.Cell>
                           </Table.Row>
