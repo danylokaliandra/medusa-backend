@@ -9,17 +9,13 @@ import { RocketLaunch } from "@medusajs/icons"
 const Shipping = () => {
   const medusa = new Medusa({baseUrl: process.env.MEDUSA_BACKEND_URL, maxRetries: 3})
   const [selectedFulfillmentOrders, setSelectedFulfillmentOrders] = useState([])
-  const [selectAllFulfillmentOrders, setSelectAllFulfillmentOrders] = useState(false)
   const [selectedShipping, setSelectedShipping] = useState([])
-  const [selectAllShippingOrders, setSelectAllShipping] = useState(false)
   const [selectedPackingOrders, setSelectedPackingOrders] = useState([])
-  const [selectAllPackingOrders, setSelectAllPackingOrders] = useState(false)
   const [showTracking, setShowTracking] = useState(false);
   const [trackingNumbers, setTrackingNumbers] = useState(
     new Array(selectedShipping.length).fill({ fulfillmentId: "", trackingNumber: "" })
   );
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [focusNext, setFocusNext] = useState(false);
 
   const { orders, isLoading, error, refetch } = useAdminOrders({
     limit: 25,
@@ -34,7 +30,7 @@ const Shipping = () => {
   const fulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'fulfilled' || order.fulfillment_status === 'partially_fulfilled' || order.fulfillment_status === 'partially_shipped') : []
   const fulfilledOrderFulfillments = fulfilledOrders
     .flatMap((order) => order.fulfillments)
-    .filter((fulfillment) => fulfillment.canceled_at === null);
+    .filter((fulfillment) => fulfillment.canceled_at === null && fulfillment.shipped_at === null)
   const orderedSelectedShipping = fulfilledOrders.flatMap(order => order.fulfillments.filter(fulfillment => selectedShipping.includes(fulfillment.id)));
   const inputRefs = useRef(orderedSelectedShipping.map(() => createRef()))
   const shippedOrders = orders ? orders.filter(order => order.fulfillment_status === 'shipped') : []
@@ -49,7 +45,6 @@ const Shipping = () => {
   }
 
   const handleSelectAllFulfillmentCheckboxes = (checked) => {
-    setSelectAllFulfillmentOrders(checked)
     if (checked) {
       setSelectedFulfillmentOrders(notFulfilledOrders.map((order) => order.display_id));
     } else {
@@ -86,7 +81,6 @@ const Shipping = () => {
   }
 
   const handleSelectAllShippingCheckboxes = (checked) => {
-    setSelectAllShipping(checked)
     if (checked) {
       const allFulfillmentIds = fulfilledOrderFulfillments.map((fulfillment) => fulfillment.id)
       setSelectedShipping(allFulfillmentIds)
@@ -146,7 +140,6 @@ const Shipping = () => {
   }
 
   const handleSelectAllPackingCheckboxes = (checked) => {
-    setSelectAllPackingOrders(checked)
     if (checked) {
       setSelectedPackingOrders(shippedOrders.map((order) => order.display_id));
     } else {
