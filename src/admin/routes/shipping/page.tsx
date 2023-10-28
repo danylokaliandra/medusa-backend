@@ -1,6 +1,6 @@
 import Medusa from "@medusajs/medusa-js"
 import { RouteConfig } from "@medusajs/admin"
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, createRef } from 'react';
 import { Checkbox, Container, Button, Table, Tabs, Input } from "@medusajs/ui"
 import { useAdminOrders } from 'medusa-react';
 import { SimpleConsoleLogger } from "typeorm";
@@ -19,6 +19,7 @@ const Shipping = () => {
     new Array(selectedShipping.length).fill({ fulfillmentId: "", trackingNumber: "" })
   );
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [focusNext, setFocusNext] = useState(false);
 
   const { orders, isLoading, error, refetch } = useAdminOrders({
     limit: 25,
@@ -34,6 +35,8 @@ const Shipping = () => {
   const fulfilledOrderFulfillments = fulfilledOrders
     .flatMap((order) => order.fulfillments)
     .filter((fulfillment) => fulfillment.canceled_at === null);
+  const orderedSelectedShipping = fulfilledOrders.flatMap(order => order.fulfillments.filter(fulfillment => selectedShipping.includes(fulfillment.id)));
+  const inputRefs = useRef(orderedSelectedShipping.map(() => createRef()))
   const shippedOrders = orders ? orders.filter(order => order.fulfillment_status === 'shipped') : []
 
   // FULFILLMENTS LOGIC
@@ -108,8 +111,9 @@ const Shipping = () => {
       trackingNumber: e.target.value,
     }
     setTrackingNumbers(newTrackingNumbers)
-    // TODO: get auto-advance to work
-    // if (e.target.value.length === 13) { ADD LOGIC }
+    if (e.target.value.length === 13 && inputRefs.current[index + 1] !== undefined) {
+      inputRefs.current[index+1].focus();
+    }
   }
 
   // PACKING LOGIC
@@ -309,7 +313,7 @@ const Shipping = () => {
                   </Table.Header>
                   <Table.Body>
                     {fulfilledOrders?.flatMap((order) =>
-                      order.fulfillments.map((fulfillment,index) => {
+                      order.fulfillments.map((fulfillment) => {
                         if (fulfillment.canceled_at) { return null } // Skip if fulfillment cancelled
                         if (!selectedShipping.includes(fulfillment.id)) { return null } // Skip if fulfillment is not selected
                         const row = (
@@ -321,7 +325,6 @@ const Shipping = () => {
                             {fulfillment.items.map((item) => {
                               const orderItem = order.items.find((oi) => oi.id === item.item_id);
                               if (!orderItem) return null; // Skip if order item not found
-
                               return (
                                 <div key={item.item_id}>
                                   {item.quantity} x {orderItem.title} ({orderItem.variant.title})
@@ -331,10 +334,11 @@ const Shipping = () => {
                           </Table.Cell>
                             <Table.Cell>
                               <Input
+                                ref={(ref) => (inputRefs.current[orderedSelectedShipping.findIndex(f => f.id === fulfillment.id)] = ref)}
                                 placeholder="Enter tracking number (13 digits)"
                                 maxLength={13}
                                 onFocus={() => {
-                                  setCurrentIndex(fulfilledOrderFulfillments.findIndex(f => f.id === fulfillment.id));
+                                  setCurrentIndex(orderedSelectedShipping.findIndex(f => f.id === fulfillment.id));
                                 }}
                                 onKeyUp={(e) => handleTrackingNumbers(e, currentIndex, fulfillment.id)}
                               /> 
