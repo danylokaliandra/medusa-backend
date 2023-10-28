@@ -1,6 +1,6 @@
 import Medusa from "@medusajs/medusa-js"
 import { RouteConfig } from "@medusajs/admin"
-import { useState, useRef, useEffect, createRef } from 'react';
+import React, { useState, useRef, useEffect, createRef } from 'react';
 import { Checkbox, Container, Button, Table, Tabs, Input } from "@medusajs/ui"
 import { useAdminOrders } from 'medusa-react';
 import { SimpleConsoleLogger } from "typeorm";
@@ -32,8 +32,8 @@ const Shipping = () => {
     .flatMap((order) => order.fulfillments)
     .filter((fulfillment) => fulfillment.canceled_at === null && fulfillment.shipped_at === null)
   const orderedSelectedShipping = fulfilledOrders.flatMap(order => order.fulfillments.filter(fulfillment => selectedShipping.includes(fulfillment.id)));
-  const inputRefs = useRef(orderedSelectedShipping.map(() => createRef()))
   const shippedOrders = orders ? orders.filter(order => order.fulfillment_status === 'shipped') : []
+  const inputRefs = useRef(orderedSelectedShipping.map(() => React.createRef<HTMLInputElement>()));
 
   // FULFILLMENTS LOGIC
   const handleFulfillmentCheckbox = (checked, orderId) => {
@@ -107,7 +107,7 @@ const Shipping = () => {
     }
     setTrackingNumbers(newTrackingNumbers)
     if (e.target.value.length === 13 && inputRefs.current[index + 1] !== undefined) {
-      inputRefs.current[index+1].focus();
+      inputRefs.current[index+1].current.focus();
     }
   }
 
@@ -246,11 +246,6 @@ const Shipping = () => {
             </Tabs.Content>
             {/* SHIPPING */}
             <Tabs.Content value="shipping">
-              {/* TODO:
-                - Entry mode, can enter tracking numbers in order, auto move to next field on entry
-                - When done, a 'ship all' button to ship em all
-                - Save tracking numbers in case page fails...
-                - Cancel fulfillment (to move back to fulfillment) */}
               <div className="px-xlarge py-large border-grey-20 border-b border-solid">
                 <div className="flex items-start justify-between">
                   <div>
@@ -347,7 +342,15 @@ const Shipping = () => {
                             </Table.Cell>
                             <Table.Cell>
                               <Input
-                                ref={(ref) => (inputRefs.current[orderedSelectedShipping.findIndex(f => f.id === fulfillment.id)] = ref)}
+                                ref={(ref) => {
+                                  const index = orderedSelectedShipping.findIndex(
+                                    (f) => f.id === fulfillment.id
+                                  )
+                                  if (ref) {
+                                    // Create a new RefObject and assign its current property the ref
+                                    inputRefs.current[index] = { current: ref };
+                                  }
+                                }}
                                 placeholder="Enter tracking number (13 digits)"
                                 maxLength={13}
                                 onFocus={() => {
