@@ -1,9 +1,8 @@
 import Medusa from "@medusajs/medusa-js"
 import { RouteConfig } from "@medusajs/admin"
-import React, { useState, useRef, useEffect, createRef } from 'react';
+import React, { useState, useRef } from "react"
 import { Checkbox, Container, Button, Table, Tabs, Input } from "@medusajs/ui"
-import { useAdminOrders } from 'medusa-react';
-import { SimpleConsoleLogger } from "typeorm";
+import { useAdminOrders } from "medusa-react"
 import { RocketLaunch } from "@medusajs/icons"
 
 const Shipping = () => {
@@ -23,7 +22,7 @@ const Shipping = () => {
     status: ["pending"], // pending, completed, archived, canceled, requires_action
     payment_status: ["captured"], // captured, awaiting, not_paid, refunded, partially_refunded, canceled, requires_action
     // fulfillment_status: [] // not_fulfilled, fulfilled, partially_fulfilled, shipped, partially_shipped, canceled, returned, partially_returned, requires_action
-    fields: "id,display_id,created_at,total,payment_status,fulfillment_status,status,fulfillments,sales_channel,edits",
+    fields: "id,display_id,created_at,subtotal,tax_total,shipping_total,total,payment_status,fulfillment_status,status,fulfillments,sales_channel,edits",
     expand: "customer,fulfillments,items,sales_channel,shipping_address,edits",
   })
   // for use in fulfillment
@@ -152,157 +151,149 @@ const Shipping = () => {
   };
 
   const generatePackingList = async () => {
-    let html = '';
+    // CSS content based on Tailwind CSS
+    let cssContent = `
+      .font-bold { font-weight: 700; }
+      .text-xl { font-size: 1.25rem; } /* added for larger store name */
+      .text-lg { font-size: 1.125rem; }
+      .text-base { font-size: 1rem; }
+      .font-semibold { font-weight: 600; }
+      .w-24 { width: 6rem; }
+      .h-24 { height: 6rem; }
+      .w-full { width: 100%; }
+      .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+      .bg-gray-200 { background-color: #edf2f7; }
+      .text-center { text-align: center; }
+      .flex { display: flex; }
+      .justify-between { justify-content: space-between; }
+      .items-center { align-items: center; }
+      .page-break { page-break-after: always; }
+
+      @media print {
+        @page {
+          size: landscape;
+        }
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+    `;
+    let encodedCssContent = encodeURIComponent(cssContent);
+  
+    let html = `
+      <html>
+      <head>
+        <link rel="stylesheet" href="data:text/css;charset=UTF-8,${encodedCssContent}">
+      </head>
+      <body>
+    `;
+
     shippedOrdersSelected.forEach(order => {
       // Order Header
       html += `
-        <table cellspacing="0" cellpadding="2" border="0" style="width: 7.5in">
-          <thead>
-            <tr>
-              <th colspan="3">
-                Packing Slip
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colspan="2" style="width: 4.5in" class="store-info">
-                <div class="company-name">
-                  ${order.sales_channel.metadata?.store_name ?? "UNKNOWN"}
-                <div>
-                  ${order.sales_channel.metadata?.store_url ?? "UNKNOWN"}</div>
-              </td>
-              <td style="width: 3.5in;" align="right" valign="top">
-                <img src="${order.sales_channel.metadata?.store_logo ?? "UNKNOWN"}" />
-              </td>
-            </tr>
-            <tr>
-              <td style="height: 0.15in">
-              </td>
-            </tr>
-            <tr>
-              <td align="right" style="width: 1in">
-                <b>Ship To:</b>
-              </td>
-              <td style="width: 3.5in; font-size: 14px">
-                <div>${order.shipping_address.first_name} ${order.shipping_address.last_name}</div>
-                <div>${order.shipping_address.address_1}</div>
-              </td>
-              <td style="width: 2.5in">
-                <table cellspacing="0" border="0" class="order-info">
-                  <tr>
-                    <td align="right" class="label first">
-                      Order #
-                    </td>
-                    <td>
-                      ${order.display_id}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td align="right" class="label">
-                      Date
-                    </td>
-                    <td>
-                      ${new Date(order.created_at).toDateString()}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td align="right" class="label">
-                      User
-                    </td>
-                    <td>
-                      ${order.customer.email}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td align="right" class="label last">
-                      Ship Date
-                    </td>
-                    <td>
-                      ${new Date(order.fulfillments[0].shipped_at).toDateString()}
-                      /* TO DO: determine how to get shipped date for overall order, currently hacking with first fulfillment order date */
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="bg-gray-200 text-center py-2">
+          <h1 class="text-lg font-bold">Packing Slip</h1>
+        </div>
+        <div class="flex justify-between items-center py-2">
+          <div>
+            <h2 class="text-xl font-semibold">${order.sales_channel.metadata?.store_name ?? "UNKNOWN"}</h2>
+            <p>${order.sales_channel.metadata?.store_url ?? "UNKNOWN"}</p>
+          </div>
+          <div>
+            <img src="${order.sales_channel.metadata?.store_logo ?? "UNKNOWN"}" alt="Logo" class="w-24 h-24" />
+          </div>
+        </div>
+        <div class="flex justify-between py-2">
+          <div>
+            <h2 class="text-base font-semibold">Ship To:</h2>
+            <p>${order.shipping_address.first_name} ${order.shipping_address.last_name}</p>
+            <p>${order.shipping_address.address_1}</p>
+          </div>
+          <div>
+            <table>
+              <tr>
+                <td class="text-base font-semibold">Order #</td>
+                <td>${String(order.display_id).padStart(8, '0')}</td>
+              </tr>
+              <tr>
+                <td class="text-base font-semibold">Date</td>
+                <td>${new Date(order.created_at).toDateString()}</td>
+              </tr>
+              <tr>
+                <td class="text-base font-semibold">User</td>
+                <td>${order.customer.email}</td>
+              </tr>
+              <tr>
+                <td class="text-base font-semibold">Ship Date</td>
+                <td>${new Date(order.fulfillments[0].shipped_at).toDateString()}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <table class="w-full">
+          <tr class="font-semibold bg-gray-200">
+            <th class="font-semibold" align="left">Item</th>
+            <th class="font-semibold" align="left">Size</th>
+            <th class="font-semibold" align="right">Unit Price</th>
+            <th class="font-semibold" align="center">Quantity</th>
+            <th class="font-semibold" align="right">Total</th>
+          </tr>
       `;
-
-      // Order Items Header
-      html += `
-        <tr>
-          <th align="left" style="width:1.5in" class="sku">
-            Item
-         </th>
-          <th align="left">
-            Description
-          </th>
-          <th align="right" style="width:0.75in" class="price">
-            Price
-          </th>
-          <th align="center" style="width:0.75in">
-            Qty
-          </th>
-          <th align="right" style="width:0.75in" class="price">
-            Ext. Price
-          </th>
-        </tr>
-      `;
-
 
       // Order Items (inside each order)
       order.items.forEach(item => {
         html += `
           <tr>
-            <td class="sku">${item.variant.sku}</td>
-            <td>${item.title}<br>${item.variant.title}</td>
-            <td align="right" class="price">${(item.unit_price / 100).toFixed(2)}</td>
-            <td align="center" style="font-weight:bold;font-size:14px">${item.quantity}</td>
-            <td align="right" class="price">${((item.unit_price * item.quantity) / 100).toFixed(2)}</td>
+            <td class="text-base" align="left">${item.title}</td>
+            <td class="text-base" align="left"> ${item.variant.title}</td>
+            <td class="text-base" align="right">${(item.unit_price / 100).toFixed(2)}</td>
+            <td class="text-base" align="center">${item.quantity}</td>
+            <td class="text-base" align="right">${((item.unit_price * item.quantity) / 100).toFixed(2)}</td>
           </tr>
         `;
       });
 
       // Order Footer
       html += `
-        <table cellspacing=0 cellpadding="2" border="0" style="width:100%" class="footer">
-          <tbody>
-            <tr>
-              <td rowspan="4" class="notes" >
-                ${order.edits[0]}
-                /* TODO: determine how to get internal notes to show */
-              </td>
-              <td align="right" style="width:1in" class="label price">
-                Sub Total:
-              </td>
-              <td style="width:0.75in" align="right" class="price">${(order.subtotal / 100).toFixed(2)}</td>
-            </tr>
-            <tr class="tax">
-              <td align="right" class="label price">
-                Tax:
-              </td>
-              <td style="width:0.75in" align="right" class="price">${(order.tax_total / 100).toFixed(2)}</td>
-            </tr>
-            <tr>
-              <td align="right" class="label price">
-                Shipping:
-              </td>
-              <td style="width:0.75in" align="right" class="price">${(order.shipping_total / 100).toFixed(2)}</td>
-            </tr>
-            <tr>
-              <td align="right" class="label price">
-                Total:
-              </td>
-              <td style="width:0.75in" align="right" class="price">${(order.total / 100).toFixed(2)}</td>
-            </tr>
-          </tbody>
         </table>
-        <p align="center"><barcode size="small">${order.display_id}</barcode></p>
+        <table class="w-full">
+          <tr>
+            <td rowspan="4">
+              TODO: Add internal order notes here and any other useful information.
+            </td>
+            <td class="text-base font-semibold" align="right">
+              Sub Total:
+            </td>
+            <td class="text-base font-semibold" align="right">${(order.subtotal / 100).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td class="text-base font-semibold" align="right">
+              Tax:
+            </td>
+            <td class="text-base font-semibold" align="right">${(order.tax_total / 100).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td class="text-base font-semibold" align="right">
+              Shipping:
+            </td>
+            <td class="text-base font-semibold" align="right">${(order.shipping_total / 100).toFixed(2)}</td>
+          </tr>
+          <tr>
+          <td class="text-base font-semibold" align="right">
+              Total:
+            </td>
+            <td class="text-base font-semibold" align="right">${(order.total / 100).toFixed(2)}</td>
+          </tr>
+        </table>
+        <div class="page-break"></div>
       `;
-
     });
+
+    html += `
+      </body>
+      </html>
+    `;
 
     // Create a new Blob from the HTML string
     const blob = new Blob([html], { type: 'text/html' });
@@ -327,7 +318,7 @@ const Shipping = () => {
   return (
     <div>
       <Container>
-        <Tabs defaultValue="fulfillment">
+        <Tabs defaultValue="packing">
           <div className="flex justify-between">
             {/* TABS AND BUTTONS */}
             <div>
