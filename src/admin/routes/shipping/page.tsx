@@ -161,8 +161,9 @@ const Shipping = () => {
       .w-12 { width: 3rem; }
       .h-12 { height: 3rem; }
       .w-full { width: 100%; }
-      .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-      .bg-gray-200 { background-color: #edf2f7; }
+      .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+      .bg-gray-200 { background-color: rgb(229 231 235); }
+      .bg-gray-300 { background-color: rgb(209 213 219); }
       .text-left { text-align: left; }
       .text-center { text-align: center; }
       .text-right { text-align: right; }
@@ -191,13 +192,20 @@ const Shipping = () => {
       <body>
     `;
 
-    shippedOrdersSelected.forEach(order => {
+    for (const order of shippedOrdersSelected) {
+      // Pull all Order notes per order
+      const { notes } = await medusa.admin.notes.list({
+        resource_id: order.id,
+        limit: 10,
+        offset: 0
+      });
+
       // Order Header
       html += `
-        <div class="bg-gray-200 text-center py-2">
-          <h1 class="text-lg font-bold">PACKING SLIP</h1>
+        <div class="bg-gray-300 text-center py-1">
+          <h1 class="text-lg font-bold">PACKING SLIP FOR ORDER #${String(order.display_id).padStart(8, '0')}</h1>
         </div>
-        <div class="flex justify-between items-center py-2">
+        <div class="flex justify-between items-center py-1">
           <div>
             <h2 class="text-xl font-semibold">${order.sales_channel.metadata?.store_name ?? "undefined"}</h2>
             <p>${order.sales_channel.metadata?.store_url ?? "undefined"}</p>
@@ -206,13 +214,28 @@ const Shipping = () => {
             <img src="${order.sales_channel.metadata?.store_logo ?? "undefined"}" alt="Logo" class="w-24 h-24" />
           </div>
         </div>
-        <div class="flex justify-between py-2">
-          <div>
-            <h2 class="text-base font-semibold">Ship To:</h2>
-            <p>${order.shipping_address.first_name} ${order.shipping_address.last_name}</p>
-            <p>${order.shipping_address.address_1}</p>
+        <div class="flex justify-between py-1">
+          <div class="flex flex-col">
+            <table>
+              <tr>
+                <td class="text-base font-semibold">Ship To:</td>
+                <td>${order.shipping_address.first_name} ${order.shipping_address.last_name}</td>
+              </tr>
+              <tr>
+                <td class="text-base font-semibold"></td>
+                <td>${order.shipping_address.address_1} ${order.shipping_address.address_2}</td>
+              </tr>
+              <tr>
+                <td class="text-base font-semibold"></td>
+                <td>${order.shipping_address.city}, ${order.shipping_address.province}</td>
+              </tr>
+              <tr>
+                <td class="text-base font-semibold"></td>
+                <td>${order.shipping_address.postal_code}</td>
+              </tr>
+            </table>
           </div>
-          <div>
+          <div class="flex flex-col">
             <table>
               <tr>
                 <td class="text-base font-semibold">Order #</td>
@@ -234,12 +257,12 @@ const Shipping = () => {
           </div>
         </div>
         <table class="w-full">
-          <tr class="font-semibold bg-gray-200">
-            <th class="font-semibold text-left">ITEM</th>
-            <th class="font-semibold text-left">SIZE</th>
-            <th class="font-semibold text-right">UNIT PRICE</th>
-            <th class="font-semibold text-center">QUANTITY</th>
-            <th class="font-semibold text-right">TOTAL</th>
+          <tr class="text-base font-semibold bg-gray-200">
+            <th class="text-base font-semibold text-left">ITEM</th>
+            <th class="text-base font-semibold text-left">SIZE</th>
+            <th class="text-base font-semibold text-right">UNIT PRICE</th>
+            <th class="text-base font-semibold text-center">QUANTITY</th>
+            <th class="text-base font-semibold text-right">TOTAL</th>
           </tr>
       `;
 
@@ -259,42 +282,59 @@ const Shipping = () => {
       // Order Footer
       html += `
         </table>
-        <table class="w-full">
-          <tr>
-            <td rowspan="4">
-              TODO: Add internal order notes here and any other useful information.
-            </td>
-            <td class="text-base font-semibold text-right">
-              Sub Total:
-            </td>
-            <td class="text-base font-semibold text-right">${(order.subtotal / 100).toFixed(2)}</td>
-          </tr>
-          <tr>
-            <td class="text-base font-semibold text-right">
-              Tax:
-            </td>
-            <td class="text-base font-semibold text-right">${(order.tax_total / 100).toFixed(2)}</td>
-          </tr>
-          <tr>
-            <td class="text-base font-semibold text-right">
-              Shipping:
-            </td>
-            <td class="text-base font-semibold text-right">${(order.shipping_total / 100).toFixed(2)}</td>
-          </tr>
-          <tr>
-          <td class="text-base font-semibold text-right">
-              Total:
-            </td>
-            <td class="text-base font-semibold text-right">${(order.total / 100).toFixed(2)}</td>
-          </tr>
-        </table>
-        <div class="bg-gray-200 text-center py-2">
-          <h1 class="text-lg font-bold"></h1>
+        <div class="flex justify-between py-1">
+          <div>
+            <table>
+              <thead>
+                <tr>
+                  <th class="text-base font-semibold text-left">Notes:</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${notes.map((note) => `
+                  <tr>
+                    <td class="text-base">${note.value} (${new Date(note.created_at).toLocaleString()} by ${note.author.email})</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <table>
+              <tr>
+                <td class="text-base font-semibold text-right">
+                  Sub Total:
+                </td>
+                <td class="text-base font-semibold text-right">${(order.subtotal / 100).toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td class="text-base font-semibold text-right">
+                  Tax:
+                </td>
+                <td class="text-base font-semibold text-right">${(order.tax_total / 100).toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td class="text-base font-semibold text-right">
+                  Shipping:
+                </td>
+                <td class="text-base font-semibold text-right">${(order.shipping_total / 100).toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td class="text-base font-semibold text-right">
+                  Total:
+                </td>
+                <td class="text-base font-semibold text-right">${(order.total / 100).toFixed(2)}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="bg-gray-300 text-center">
+          <h1 class="text-lg font-bold">----- END -----</h1>
         </div>
         <br>
         <div class="page-break"></div>
       `;
-    });
+    };
 
     html += `
       </body>
