@@ -4,6 +4,8 @@ import React, { useState, useRef } from "react"
 import { Checkbox, Container, Button, Table, Tabs, Input } from "@medusajs/ui"
 import { useAdminOrders } from "medusa-react"
 import { RocketLaunch } from "@medusajs/icons"
+import { formatAmount } from "medusa-react"
+import { Region } from "@medusajs/medusa"
 
 const Shipping = () => {
   const medusa = new Medusa({baseUrl: process.env.MEDUSA_BACKEND_URL, maxRetries: 3})
@@ -14,7 +16,6 @@ const Shipping = () => {
   const [showTracking, setShowTracking] = useState(false);
   const [trackingNumbers, setTrackingNumbers] = useState(new Array(selectedShipping.length).fill({ fulfillmentId: "", trackingNumber: "" }));
   const [currentIndex, setCurrentIndex] = useState(0);
-
   // overall orders
   const { orders, isLoading, error, refetch } = useAdminOrders({
     limit: 25,
@@ -22,8 +23,8 @@ const Shipping = () => {
     status: ["pending"], // pending, completed, archived, canceled, requires_action
     payment_status: ["captured"], // captured, awaiting, not_paid, refunded, partially_refunded, canceled, requires_action
     // fulfillment_status: [] // not_fulfilled, fulfilled, partially_fulfilled, shipped, partially_shipped, canceled, returned, partially_returned, requires_action
-    fields: "id,display_id,created_at,subtotal,tax_total,shipping_total,total,payment_status,fulfillment_status,status,fulfillments,sales_channel,edits",
-    expand: "customer,fulfillments,items,sales_channel,shipping_address,edits",
+    fields: "id,display_id,created_at,subtotal,discount_total,gift_card_total,tax_total,shipping_total,total,payment_status,fulfillment_status,status,fulfillments,sales_channel,edits",
+    expand: "customer,fulfillments,items,sales_channel,shipping_address,edits,region",
   })
   // for use in fulfillment
   const notFulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'not_fulfilled' || order.fulfillment_status === 'canceled') : []
@@ -37,6 +38,14 @@ const Shipping = () => {
   // for use in packing
   const shippedOrders = orders ? orders.filter(order => order.fulfillment_status === 'shipped') : []
   const shippedOrdersSelected = shippedOrders.filter(order => selectedPackingOrders.includes(order.display_id));
+
+  // HELPER
+  const getAmount = (amount, region: Region ) => {
+    if (!amount) {
+      return
+    }
+    return formatAmount({ amount, region, includeTaxes: false })
+  }
 
   // FULFILLMENTS LOGIC
   const handleFulfillmentCheckbox = (checked, orderId) => {
@@ -193,7 +202,7 @@ const Shipping = () => {
     `;
 
     for (const order of shippedOrdersSelected) {
-      // Pull all Order notes per order
+      // Capture Order Notes
       const { notes } = await medusa.admin.notes.list({
         resource_id: order.id,
         limit: 10,
@@ -272,9 +281,9 @@ const Shipping = () => {
           <tr>
             <td class="text-base text-left">${item.title}</td>
             <td class="text-base text-left"> ${item.variant.title}</td>
-            <td class="text-base text-right">${(item.unit_price / 100).toFixed(2)}</td>
+            <td class="text-base text-right">${getAmount(item.unit_price,order.region)}</td>
             <td class="text-base text-center">${item.quantity}</td>
-            <td class="text-base text-right">${((item.unit_price * item.quantity) / 100).toFixed(2)}</td>
+            <td class="text-base text-right">${getAmount(item.subtotal,order.region)}</td>
           </tr>
         `;
       });
@@ -284,20 +293,22 @@ const Shipping = () => {
         </table>
         <div class="flex justify-between py-1">
           <div>
-            <table>
-              <thead>
-                <tr>
-                  <th class="text-base font-semibold text-left">Notes:</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${notes.map((note) => `
+            ${notes.length > 0 ? (`
+              <table>
+                <thead>
                   <tr>
-                    <td class="text-base">${note.value} (${new Date(note.created_at).toLocaleString()} by ${note.author.email})</td>
+                    <th class="text-base font-semibold text-left">Notes:</th>
                   </tr>
-                `).join("")}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  ${notes.map((note) => `
+                    <tr>
+                      <td class="text-base">${note.value} (${new Date(note.created_at).toLocaleString()} by ${note.author.first_name} ${note.author.last_name})</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            `) : ""}
           </div>
           <div>
             <table>
@@ -305,25 +316,45 @@ const Shipping = () => {
                 <td class="text-base font-semibold text-right">
                   Sub Total:
                 </td>
-                <td class="text-base font-semibold text-right">${(order.subtotal / 100).toFixed(2)}</td>
+                <td class="text-base font-semibold text-right">${getAmount(order.subtotal,order.region)}</td>
               </tr>
-              <tr>
-                <td class="text-base font-semibold text-right">
-                  Tax:
-                </td>
-                <td class="text-base font-semibold text-right">${(order.tax_total / 100).toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td class="text-base font-semibold text-right">
-                  Shipping:
-                </td>
-                <td class="text-base font-semibold text-right">${(order.shipping_total / 100).toFixed(2)}</td>
-              </tr>
+              ${order.discount_total > 0 ? (`
+                <tr>
+                  <td class="text-base font-semibold text-right">
+                    Discount:
+                  </td>
+                  <td class="text-base font-semibold text-right">-${getAmount(order.discount_total,order.region)}</td>
+                </tr>
+              `) : ""}
+              ${order.gift_card_total > 0 ? (`
+                <tr>
+                  <td class="text-base font-semibold text-right">
+                    Gift Card:
+                  </td>
+                  <td class="text-base font-semibold text-right">-${getAmount(order.gift_card_total,order.region)}</td>
+                </tr>
+              `) : ""}
+              ${order.tax_total > 0 ? (`
+                <tr>
+                  <td class="text-base font-semibold text-right">
+                    Tax:
+                  </td>
+                  <td class="text-base font-semibold text-right">${getAmount(order.tax_total,order.region)}</td>
+                </tr>
+              `) : ""}
+              ${order.shipping_total > 0 ? (`
+                <tr>
+                  <td class="text-base font-semibold text-right">
+                    Shipping:
+                  </td>
+                  <td class="text-base font-semibold text-right">${getAmount(order.shipping_total,order.region)}</td>
+                </tr>
+              `) : ""}
               <tr>
                 <td class="text-base font-semibold text-right">
                   Total:
                 </td>
-                <td class="text-base font-semibold text-right">${(order.total / 100).toFixed(2)}</td>
+                <td class="text-base font-semibold text-right">${getAmount(order.total,order.region)}</td>
               </tr>
             </table>
           </div>
@@ -443,7 +474,7 @@ const Shipping = () => {
                           </div>
                         ))}
                       </Table.Cell>
-                      <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
+                      <Table.Cell>{getAmount(order.total,order.region)}</Table.Cell>
                       <Table.Cell>{order.sales_channel.name}</Table.Cell>
                     </Table.Row>
                   ))}
@@ -506,7 +537,7 @@ const Shipping = () => {
                                 );
                               })}
                             </Table.Cell>
-                            <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
+                            <Table.Cell>{getAmount(order.total,order.region)}</Table.Cell>
                             <Table.Cell>{order.sales_channel.name}</Table.Cell>
                           </Table.Row>
                         )
@@ -610,7 +641,7 @@ const Shipping = () => {
                       <Table.Cell>#{order.display_id}</Table.Cell>
                       <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
                       <Table.Cell>{order.customer.email}</Table.Cell>
-                      <Table.Cell>${(order.total / 100).toFixed(2)}</Table.Cell>
+                      <Table.Cell>{getAmount(order.total,order.region)}</Table.Cell>
                       <Table.Cell>{order.sales_channel.name}</Table.Cell>
                     </Table.Row>
                   ))}
