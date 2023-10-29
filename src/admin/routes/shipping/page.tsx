@@ -154,24 +154,26 @@ const Shipping = () => {
     // CSS content based on Tailwind CSS
     let cssContent = `
       .font-bold { font-weight: 700; }
-      .text-xl { font-size: 1.25rem; } /* added for larger store name */
+      .font-semibold { font-weight: 600; }
+      .text-xl { font-size: 1.25rem; }
       .text-lg { font-size: 1.125rem; }
       .text-base { font-size: 1rem; }
-      .font-semibold { font-weight: 600; }
-      .w-24 { width: 6rem; }
-      .h-24 { height: 6rem; }
+      .w-12 { width: 3rem; }
+      .h-12 { height: 3rem; }
       .w-full { width: 100%; }
       .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
       .bg-gray-200 { background-color: #edf2f7; }
+      .text-left { text-align: left; }
       .text-center { text-align: center; }
+      .text-right { text-align: right; }
+      .items-center { align-items: center; }
       .flex { display: flex; }
       .justify-between { justify-content: space-between; }
-      .items-center { align-items: center; }
       .page-break { page-break-after: always; }
 
       @media print {
         @page {
-          size: landscape;
+          size: portrait;
         }
         body {
           -webkit-print-color-adjust: exact;
@@ -180,7 +182,7 @@ const Shipping = () => {
       }
     `;
     let encodedCssContent = encodeURIComponent(cssContent);
-  
+
     let html = `
       <html>
       <head>
@@ -193,15 +195,15 @@ const Shipping = () => {
       // Order Header
       html += `
         <div class="bg-gray-200 text-center py-2">
-          <h1 class="text-lg font-bold">Packing Slip</h1>
+          <h1 class="text-lg font-bold">PACKING SLIP</h1>
         </div>
         <div class="flex justify-between items-center py-2">
           <div>
-            <h2 class="text-xl font-semibold">${order.sales_channel.metadata?.store_name ?? "UNKNOWN"}</h2>
-            <p>${order.sales_channel.metadata?.store_url ?? "UNKNOWN"}</p>
+            <h2 class="text-xl font-semibold">${order.sales_channel.metadata?.store_name ?? "undefined"}</h2>
+            <p>${order.sales_channel.metadata?.store_url ?? "undefined"}</p>
           </div>
           <div>
-            <img src="${order.sales_channel.metadata?.store_logo ?? "UNKNOWN"}" alt="Logo" class="w-24 h-24" />
+            <img src="${order.sales_channel.metadata?.store_logo ?? "undefined"}" alt="Logo" class="w-24 h-24" />
           </div>
         </div>
         <div class="flex justify-between py-2">
@@ -233,11 +235,11 @@ const Shipping = () => {
         </div>
         <table class="w-full">
           <tr class="font-semibold bg-gray-200">
-            <th class="font-semibold" align="left">Item</th>
-            <th class="font-semibold" align="left">Size</th>
-            <th class="font-semibold" align="right">Unit Price</th>
-            <th class="font-semibold" align="center">Quantity</th>
-            <th class="font-semibold" align="right">Total</th>
+            <th class="font-semibold text-left">ITEM</th>
+            <th class="font-semibold text-left">SIZE</th>
+            <th class="font-semibold text-right">UNIT PRICE</th>
+            <th class="font-semibold text-center">QUANTITY</th>
+            <th class="font-semibold text-right">TOTAL</th>
           </tr>
       `;
 
@@ -245,11 +247,11 @@ const Shipping = () => {
       order.items.forEach(item => {
         html += `
           <tr>
-            <td class="text-base" align="left">${item.title}</td>
-            <td class="text-base" align="left"> ${item.variant.title}</td>
-            <td class="text-base" align="right">${(item.unit_price / 100).toFixed(2)}</td>
-            <td class="text-base" align="center">${item.quantity}</td>
-            <td class="text-base" align="right">${((item.unit_price * item.quantity) / 100).toFixed(2)}</td>
+            <td class="text-base text-left">${item.title}</td>
+            <td class="text-base text-left"> ${item.variant.title}</td>
+            <td class="text-base text-right">${(item.unit_price / 100).toFixed(2)}</td>
+            <td class="text-base text-center">${item.quantity}</td>
+            <td class="text-base text-right">${((item.unit_price * item.quantity) / 100).toFixed(2)}</td>
           </tr>
         `;
       });
@@ -262,30 +264,34 @@ const Shipping = () => {
             <td rowspan="4">
               TODO: Add internal order notes here and any other useful information.
             </td>
-            <td class="text-base font-semibold" align="right">
+            <td class="text-base font-semibold text-right">
               Sub Total:
             </td>
-            <td class="text-base font-semibold" align="right">${(order.subtotal / 100).toFixed(2)}</td>
+            <td class="text-base font-semibold text-right">${(order.subtotal / 100).toFixed(2)}</td>
           </tr>
           <tr>
-            <td class="text-base font-semibold" align="right">
+            <td class="text-base font-semibold text-right">
               Tax:
             </td>
-            <td class="text-base font-semibold" align="right">${(order.tax_total / 100).toFixed(2)}</td>
+            <td class="text-base font-semibold text-right">${(order.tax_total / 100).toFixed(2)}</td>
           </tr>
           <tr>
-            <td class="text-base font-semibold" align="right">
+            <td class="text-base font-semibold text-right">
               Shipping:
             </td>
-            <td class="text-base font-semibold" align="right">${(order.shipping_total / 100).toFixed(2)}</td>
+            <td class="text-base font-semibold text-right">${(order.shipping_total / 100).toFixed(2)}</td>
           </tr>
           <tr>
-          <td class="text-base font-semibold" align="right">
+          <td class="text-base font-semibold text-right">
               Total:
             </td>
-            <td class="text-base font-semibold" align="right">${(order.total / 100).toFixed(2)}</td>
+            <td class="text-base font-semibold text-right">${(order.total / 100).toFixed(2)}</td>
           </tr>
         </table>
+        <div class="bg-gray-200 text-center py-2">
+          <h1 class="text-lg font-bold"></h1>
+        </div>
+        <br>
         <div class="page-break"></div>
       `;
     });
@@ -318,7 +324,7 @@ const Shipping = () => {
   return (
     <div>
       <Container>
-        <Tabs defaultValue="packing">
+        <Tabs defaultValue="fulfillment">
           <div className="flex justify-between">
             {/* TABS AND BUTTONS */}
             <div>
