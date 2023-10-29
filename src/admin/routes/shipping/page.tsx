@@ -211,7 +211,7 @@ const Shipping = () => {
             <p>${order.sales_channel.metadata?.store_url ?? "undefined"}</p>
           </div>
           <div>
-            <img src="${order.sales_channel.metadata?.store_logo ?? "undefined"}" alt="Logo" class="w-24 h-24" />
+            <img src="${order.sales_channel.metadata?.store_logo ?? "undefined"}" alt="Logo" class="w-24 h-24 max-w-full max-h-full" />
           </div>
         </div>
         <div class="flex justify-between py-1">
