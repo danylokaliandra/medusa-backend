@@ -18,7 +18,7 @@ const Shipping = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   // overall orders
   const { orders, isLoading, error, refetch } = useAdminOrders({
-    limit: 25,
+    limit: 0, // no limit (grab all orders)
     offset: 0,
     status: ["pending"], // pending, completed, archived, canceled, requires_action
     payment_status: ["captured"], // captured, awaiting, not_paid, refunded, partially_refunded, canceled, requires_action
