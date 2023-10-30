@@ -11,10 +11,10 @@ const Shipping = () => {
   const medusa = new Medusa({baseUrl: process.env.MEDUSA_BACKEND_URL, maxRetries: 3})
   // state variables
   const [selectedFulfillmentOrders, setSelectedFulfillmentOrders] = useState([])
-  const [selectedShipping, setSelectedShipping] = useState([])
+  const [selectedShippingFulfillments, setSelectedShippingFulfillments] = useState([])
   const [selectedPackingOrders, setSelectedPackingOrders] = useState([])
   const [showTracking, setShowTracking] = useState(false);
-  const [trackingNumbers, setTrackingNumbers] = useState(new Array(selectedShipping.length).fill({ fulfillmentId: "", trackingNumber: "" }));
+  const [trackingNumbers, setTrackingNumbers] = useState(new Array(selectedShippingFulfillments.length).fill({ fulfillmentId: "", trackingNumber: "" }));
   const [currentIndex, setCurrentIndex] = useState(0);
   // overall orders
   const { orders, isLoading, error, refetch } = useAdminOrders({
@@ -26,20 +26,22 @@ const Shipping = () => {
     fields: "id,display_id,created_at,subtotal,discount_total,gift_card_total,tax_total,shipping_total,total,payment_status,fulfillment_status,status,fulfillments,sales_channel,edits",
     expand: "customer,fulfillments,items,sales_channel,shipping_address,edits,region",
   })
+  const sortedOrders = orders ? orders.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) : [];
   // for use in fulfillment
-  const notFulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'not_fulfilled' || order.fulfillment_status === 'canceled') : []
+  const fulfillmentOrders = sortedOrders ? sortedOrders.filter(order => order.fulfillment_status === 'not_fulfilled' || order.fulfillment_status === 'canceled') : []
+  const fulfillmentOrdersFiltered = fulfillmentOrders.filter(order => selectedFulfillmentOrders.includes(order.display_id))
+  // for use in packing
+  const packingOrders = sortedOrders ? sortedOrders.filter(order => order.fulfillment_status === 'fulfilled') : []
+  const packingOrdersFiltered = packingOrders.filter(order => selectedPackingOrders.includes(order.display_id));
   // for use in shipping
-  const fulfilledOrders = orders ? orders.filter(order => order.fulfillment_status === 'fulfilled' || order.fulfillment_status === 'partially_fulfilled' || order.fulfillment_status === 'partially_shipped') : []
-  const fulfilledOrderFulfillments = fulfilledOrders
+  const shippingOrders = sortedOrders ? sortedOrders.filter(order => order.fulfillment_status === 'fulfilled') : []
+  const shippingFulfillments = shippingOrders
     .flatMap((order) => order.fulfillments)
     .filter((fulfillment) => fulfillment.canceled_at === null && fulfillment.shipped_at === null)
-  const fulfilledOrdersSelected = fulfilledOrders.flatMap(order => order.fulfillments.filter(fulfillment => selectedShipping.includes(fulfillment.id)));
-  const inputRefs = useRef(fulfilledOrdersSelected.map(() => React.createRef<HTMLInputElement>()));
-  // for use in packing
-  const shippedOrders = orders ? orders.filter(order => order.fulfillment_status === 'shipped') : []
-  const shippedOrdersSelected = shippedOrders.filter(order => selectedPackingOrders.includes(order.display_id));
+  const shippingFulfillmentsFiltered = shippingOrders.flatMap(order => order.fulfillments.filter(fulfillment => selectedShippingFulfillments.includes(fulfillment.id)))
+  const trackingNumberInputRefs = useRef(shippingFulfillmentsFiltered.map(() => React.createRef<HTMLInputElement>()))
 
-  // HELPER
+  // CURRENT FORMAT HELPER
   const getAmount = (amount, region: Region ) => {
     if (!amount) {
       return
@@ -58,15 +60,14 @@ const Shipping = () => {
 
   const handleSelectAllFulfillmentCheckboxes = (checked) => {
     if (checked) {
-      setSelectedFulfillmentOrders(notFulfilledOrders.map((order) => order.display_id));
+      setSelectedFulfillmentOrders(fulfillmentOrders.map((order) => order.display_id));
     } else {
       setSelectedFulfillmentOrders([])
     }
   };
 
   const createFulfillments = async () => {
-    for (const displayId of selectedFulfillmentOrders) {
-      const order = notFulfilledOrders.find(order => order.display_id === displayId)
+    for (const order of fulfillmentOrdersFiltered) {
       const itemsToFulfill = order.items.map(item => ({
         item_id: item.id,
         quantity: item.quantity,
@@ -76,71 +77,12 @@ const Shipping = () => {
           items: itemsToFulfill
         })
       } catch (error) {
-        console.error(`Failed to create fulfillment for order ${displayId}:`, error)
+        console.error(`Failed to create fulfillment for order ${order.display_id}:`, error)
       }
     }
     // refetch orders
     refetch()
   }
-
-  // SHIPPING LOGIC
-  const handleShippingCheckbox = (checked, fulfillmentId) => {
-    if (checked) {
-      setSelectedShipping([...selectedShipping, fulfillmentId]);
-    } else {
-      setSelectedShipping(selectedShipping.filter((id) => id !== fulfillmentId));
-    }
-  }
-
-  const handleSelectAllShippingCheckboxes = (checked) => {
-    if (checked) {
-      const allFulfillmentIds = fulfilledOrderFulfillments.map((fulfillment) => fulfillment.id)
-      setSelectedShipping(allFulfillmentIds)
-    } else {
-      setSelectedShipping([])
-    }
-  }
-
-  const handleShowTracking = () => {
-    if (!showTracking) {
-      setShowTracking(true)
-    }
-    else {
-      setShowTracking(false)
-    }
-  }
-
-  const handleTrackingNumbers = (e, index, orderId, fulfillmentId) => {
-    const newTrackingNumbers = [...trackingNumbers]
-    newTrackingNumbers[index] = {
-      orderId: orderId,
-      fulfillmentId: fulfillmentId,
-      trackingNumber: e.target.value,
-    }
-    setTrackingNumbers(newTrackingNumbers)
-    if (e.target.value.length === 13 && inputRefs.current[index + 1] !== undefined) {
-      inputRefs.current[index+1].current.focus();
-    }
-  }
-
-  const createShipments = async () => {
-    // Iterate over each fulfillment and tracking number
-    // TODO: extend this to handle multiple tracking orders (requires modifying the input page as well)
-    for (const { orderId, fulfillmentId, trackingNumber } of trackingNumbers) {
-      try {
-        // Make the API request to create the shipment
-        await medusa.admin.orders.createShipment(orderId, {
-          fulfillment_id: fulfillmentId,
-          tracking_numbers: [trackingNumber],
-          no_notification: false,
-        });
-      } catch (error) {
-        console.error("Error creating shipment:", error);
-      }
-    }
-    // refetch orders
-    refetch()
-  };
 
   // PACKING LOGIC
   const handlePackingCheckbox = (checked, orderId) => {
@@ -153,7 +95,7 @@ const Shipping = () => {
 
   const handleSelectAllPackingCheckboxes = (checked) => {
     if (checked) {
-      setSelectedPackingOrders(shippedOrders.map((order) => order.display_id));
+      setSelectedPackingOrders(packingOrders.map((order) => order.display_id));
     } else {
       setSelectedPackingOrders([])
     }
@@ -201,7 +143,7 @@ const Shipping = () => {
       <body>
     `;
 
-    for (const order of shippedOrdersSelected) {
+    for (const order of packingOrdersFiltered) {
       // Capture Order Notes
       const { notes } = await medusa.admin.notes.list({
         resource_id: order.id,
@@ -382,6 +324,65 @@ const Shipping = () => {
     window.open(url, '_blank');
   }
 
+  // SHIPPING LOGIC
+  const handleShippingCheckbox = (checked, fulfillmentId) => {
+    if (checked) {
+      setSelectedShippingFulfillments([...selectedShippingFulfillments, fulfillmentId]);
+    } else {
+      setSelectedShippingFulfillments(selectedShippingFulfillments.filter((id) => id !== fulfillmentId));
+    }
+  }
+
+  const handleSelectAllShippingCheckboxes = (checked) => {
+    if (checked) {
+      const allFulfillmentIds = shippingFulfillments.map((fulfillment) => fulfillment.id)
+      setSelectedShippingFulfillments(allFulfillmentIds)
+    } else {
+      setSelectedShippingFulfillments([])
+    }
+  }
+
+  const handleShowTracking = () => {
+    if (!showTracking) {
+      setShowTracking(true)
+    }
+    else {
+      setShowTracking(false)
+    }
+  }
+
+  const handleTrackingNumbers = (e, index, orderId, fulfillmentId) => {
+    const newTrackingNumbers = [...trackingNumbers]
+    newTrackingNumbers[index] = {
+      orderId: orderId,
+      fulfillmentId: fulfillmentId,
+      trackingNumber: e.target.value,
+    }
+    setTrackingNumbers(newTrackingNumbers)
+    if (e.target.value.length === 13 && trackingNumberInputRefs.current[index + 1] !== undefined) {
+      trackingNumberInputRefs.current[index+1].current.focus();
+    }
+  }
+
+  const createShipments = async () => {
+    // Iterate over each fulfillment and tracking number
+    // TODO: extend this to handle multiple tracking orders (requires modifying the input page as well)
+    for (const { orderId, fulfillmentId, trackingNumber } of trackingNumbers) {
+      try {
+        // Make the API request to create the shipment
+        await medusa.admin.orders.createShipment(orderId, {
+          fulfillment_id: fulfillmentId,
+          tracking_numbers: [trackingNumber],
+          no_notification: false,
+        });
+      } catch (error) {
+        console.error("Error creating shipment:", error);
+      }
+    }
+    // refetch orders
+    refetch()
+  };
+
   // DATA LOADING
   if (isLoading) {
     return <div>Loading...</div>
@@ -401,31 +402,31 @@ const Shipping = () => {
             <div>
               <Tabs.List >
                 <Tabs.Trigger value="fulfillment">Fulfillment</Tabs.Trigger>
-                <Tabs.Trigger value="shipping">Shipping</Tabs.Trigger>
                 <Tabs.Trigger value="packing">Packing</Tabs.Trigger>
+                <Tabs.Trigger value="shipping">Shipping</Tabs.Trigger>
               </Tabs.List>
             </div>
             <div>
               <Tabs.Content value="fulfillment">
                 <Button onClick={createFulfillments} disabled={selectedFulfillmentOrders.length === 0}>Fulfill Orders{selectedFulfillmentOrders.length > 0 && ` #${selectedFulfillmentOrders.sort((a, b) => a - b).join(", ")}`}</Button>
               </Tabs.Content>
-              <Tabs.Content value="shipping">
-              {!showTracking ? (
-                <Button onClick={handleShowTracking} disabled={selectedShipping.length === 0}>Enter Tracking Numbers</Button>
-              ) : (
-                <div>
-                  <Button onClick={handleShowTracking}>Back</Button>
-                  <Button onClick={createShipments} disabled={selectedShipping.length === 0 || selectedShipping.some((fulfillmentId) => {
-                    const trackingInfo = trackingNumbers.find((tn) => tn && tn.fulfillmentId === fulfillmentId);
-                    return !trackingInfo || trackingInfo.trackingNumber.length !== 13;
-                  })}>Ship</Button>
-                </div>
-              )}
-              </Tabs.Content>
               <Tabs.Content value="packing">
                 <Button onClick={generatePackingList}
                   disabled={selectedPackingOrders.length === 0}>Print Packing Lists{selectedPackingOrders.length > 0 && ` for Orders #${selectedPackingOrders.sort((a, b) => a - b).join(", ")}`}
                 </Button>
+              </Tabs.Content>
+              <Tabs.Content value="shipping">
+              {!showTracking ? (
+                <Button onClick={handleShowTracking} disabled={selectedShippingFulfillments.length === 0}>Enter Tracking Numbers</Button>
+              ) : (
+                <div>
+                  <Button onClick={handleShowTracking}>Back</Button>
+                  <Button onClick={createShipments} disabled={selectedShippingFulfillments.length === 0 || selectedShippingFulfillments.some((fulfillmentId) => {
+                    const trackingInfo = trackingNumbers.find((tn) => tn && tn.fulfillmentId === fulfillmentId);
+                    return !trackingInfo || trackingInfo.trackingNumber.length !== 13;
+                  })}>Ship & Mark Complete</Button>
+                </div>
+              )}
               </Tabs.Content>
             </div>
           </div>
@@ -445,7 +446,7 @@ const Shipping = () => {
                     <Table.HeaderCell>
                       <Checkbox
                         onCheckedChange={handleSelectAllFulfillmentCheckboxes}
-                        checked={notFulfilledOrders.every((order) => selectedFulfillmentOrders.includes(order.display_id))}
+                        checked={fulfillmentOrders.every((order) => selectedFulfillmentOrders.includes(order.display_id))}
                       />
                     </Table.HeaderCell>
                     <Table.HeaderCell>Order#</Table.HeaderCell>
@@ -457,7 +458,7 @@ const Shipping = () => {
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                  {notFulfilledOrders?.map((order) => (
+                  {fulfillmentOrders?.map((order) => (
                     <Table.Row key={order.id}>
                       <Table.Cell>
                         <Checkbox
@@ -481,12 +482,55 @@ const Shipping = () => {
                 </Table.Body>
               </Table>
             </Tabs.Content>
+            {/* PACKING */}
+            <Tabs.Content value="packing">
+              <div className="px-xlarge py-large border-grey-20 border-b border-solid">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="inter-small-regular text-grey-50 pt-1.5">Time to ship! Let's print some packing slips.</h3>
+                  </div>
+                </div>
+              </div>
+              <Table>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell>
+                      <Checkbox
+                        onCheckedChange={handleSelectAllPackingCheckboxes}
+                        checked={packingOrders.every((order) => selectedPackingOrders.includes(order.display_id))}
+                      />
+                    </Table.HeaderCell>
+                    <Table.HeaderCell>Order#</Table.HeaderCell>
+                    <Table.HeaderCell>Date</Table.HeaderCell>
+                    <Table.HeaderCell>Shipping To</Table.HeaderCell>
+                    <Table.HeaderCell>Total</Table.HeaderCell>
+                    <Table.HeaderCell>Sales Channel</Table.HeaderCell>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {packingOrders?.map((order) => (
+                    <Table.Row key={order.id}>
+                      <Table.Cell>
+                        <Checkbox
+                          checked={selectedPackingOrders.includes(order.display_id)}
+                          onCheckedChange={(checked) => handlePackingCheckbox(checked, order.display_id)}/>
+                      </Table.Cell>
+                      <Table.Cell>#{order.display_id}</Table.Cell>
+                      <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
+                      <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
+                      <Table.Cell>{getAmount(order.total,order.region)}</Table.Cell>
+                      <Table.Cell>{order.sales_channel.name}</Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table>
+            </Tabs.Content>
             {/* SHIPPING */}
             <Tabs.Content value="shipping">
               <div className="px-xlarge py-large border-grey-20 border-b border-solid">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="inter-small-regular text-grey-50 pt-1.5">Orders below have been paid for and are ready for tracking number assignment. Rows in blue are partial fulfillments.</h3>
+                    <h3 className="inter-small-regular text-grey-50 pt-1.5">Orders below have been paid for and are ready for tracking number assignment. Orders in blue have multiple fulfillments.</h3>
                   </div>
                 </div>
               </div>
@@ -497,7 +541,7 @@ const Shipping = () => {
                       <Table.HeaderCell>
                         <Checkbox
                           onCheckedChange={handleSelectAllShippingCheckboxes}
-                          checked={fulfilledOrderFulfillments.every((fulfillment) => selectedShipping.includes(fulfillment.id))}/>
+                          checked={shippingFulfillments.every((fulfillment) => selectedShippingFulfillments.includes(fulfillment.id))}/>
                       </Table.HeaderCell>
                       <Table.HeaderCell>Order#</Table.HeaderCell>
                       <Table.HeaderCell>Date</Table.HeaderCell>
@@ -508,7 +552,7 @@ const Shipping = () => {
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
-                    {fulfilledOrders?.flatMap((order) =>
+                    {shippingOrders?.flatMap((order) =>
                       order.fulfillments.map((fulfillment) => {
                         if (fulfillment.canceled_at || fulfillment.shipped_at) { return null } // Skip if fulfillment cancelled or shipped
                         const isPartialShipment = order.items.some((orderItem) => {
@@ -519,7 +563,7 @@ const Shipping = () => {
                           <Table.Row key={fulfillment.id} className={isPartialShipment ? "bg-ui-bg-highlight-hover" : "white"}>
                             <Table.Cell>
                               <Checkbox
-                                checked={selectedShipping.includes(fulfillment.id)}
+                                checked={selectedShippingFulfillments.includes(fulfillment.id)}
                                 onCheckedChange={(checked) => handleShippingCheckbox(checked, fulfillment.id)}
                               />
                             </Table.Cell>
@@ -557,10 +601,10 @@ const Shipping = () => {
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
-                    {fulfilledOrders?.flatMap((order) =>
+                    {shippingOrders?.flatMap((order) =>
                       order.fulfillments.map((fulfillment) => {
                         if (fulfillment.canceled_at) { return null } // Skip if fulfillment cancelled
-                        if (!selectedShipping.includes(fulfillment.id)) { return null } // Skip if fulfillment is not selected
+                        if (!selectedShippingFulfillments.includes(fulfillment.id)) { return null } // Skip if fulfillment is not selected
                         const row = (
                           <Table.Row key={fulfillment.id}>
                             <Table.Cell>#{order.display_id}</Table.Cell>
@@ -580,18 +624,18 @@ const Shipping = () => {
                             <Table.Cell>
                               <Input
                                 ref={(ref) => {
-                                  const index = fulfilledOrdersSelected.findIndex(
+                                  const index = shippingFulfillmentsFiltered.findIndex(
                                     (f) => f.id === fulfillment.id
                                   )
                                   if (ref) {
                                     // Create a new RefObject and assign its current property the ref
-                                    inputRefs.current[index] = { current: ref };
+                                    trackingNumberInputRefs.current[index] = { current: ref };
                                   }
                                 }}
                                 placeholder="Enter tracking number (13 digits)"
                                 maxLength={13}
                                 onFocus={() => {
-                                  setCurrentIndex(fulfilledOrdersSelected.findIndex(f => f.id === fulfillment.id));
+                                  setCurrentIndex(shippingFulfillmentsFiltered.findIndex(f => f.id === fulfillment.id));
                                 }}
                                 onKeyUp={(e) => handleTrackingNumbers(e, currentIndex, order.id, fulfillment.id)}
                               /> 
@@ -604,49 +648,6 @@ const Shipping = () => {
                   </Table.Body>
                 </Table>
               )}
-            </Tabs.Content>
-            {/* PACKING */}
-            <Tabs.Content value="packing">
-              <div className="px-xlarge py-large border-grey-20 border-b border-solid">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="inter-small-regular text-grey-50 pt-1.5">Time to ship! Let's print some packing slips.</h3>
-                  </div>
-                </div>
-              </div>
-              <Table>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.HeaderCell>
-                      <Checkbox
-                        onCheckedChange={handleSelectAllPackingCheckboxes}
-                        checked={shippedOrders.every((order) => selectedPackingOrders.includes(order.display_id))}
-                      />
-                    </Table.HeaderCell>
-                    <Table.HeaderCell>Order#</Table.HeaderCell>
-                    <Table.HeaderCell>Date</Table.HeaderCell>
-                    <Table.HeaderCell>Customer Email</Table.HeaderCell>
-                    <Table.HeaderCell>Total</Table.HeaderCell>
-                    <Table.HeaderCell>Sales Channel</Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {shippedOrders?.map((order) => (
-                    <Table.Row key={order.id}>
-                      <Table.Cell>
-                        <Checkbox
-                          checked={selectedPackingOrders.includes(order.display_id)}
-                          onCheckedChange={(checked) => handlePackingCheckbox(checked, order.display_id)}/>
-                      </Table.Cell>
-                      <Table.Cell>#{order.display_id}</Table.Cell>
-                      <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
-                      <Table.Cell>{order.customer.email}</Table.Cell>
-                      <Table.Cell>{getAmount(order.total,order.region)}</Table.Cell>
-                      <Table.Cell>{order.sales_channel.name}</Table.Cell>
-                    </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table>
             </Tabs.Content>
           </div>
         </Tabs>
