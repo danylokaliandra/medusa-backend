@@ -7,6 +7,16 @@ import { formatAmount } from "medusa-react"
 import { Region } from "@medusajs/medusa"
 import { useAdminOrders, useAdminCustomPost } from "medusa-react"
 
+interface BatchMetadata {
+  batch_created: string
+  batch_name: string
+  batch_color: string
+}
+
+interface Metadata {
+  batch?: BatchMetadata | string
+}
+
 const Shipping = () => {
   const medusa = new Medusa({baseUrl: process.env.MEDUSA_BACKEND_URL, maxRetries: 3})
   const { mutate } = useAdminCustomPost(`/orders/metadata`,["order-metadata"])
@@ -34,7 +44,6 @@ const Shipping = () => {
   // for use in packing
   const packingOrders = sortedOrders ? sortedOrders.filter(order => order.fulfillment_status === 'fulfilled') : []
   const packingOrdersFiltered = packingOrders.filter(order => selectedPackingOrders.includes(order.display_id));
-  console.log("packingOrdersFiltered",packingOrdersFiltered)
   // for use in shipping
   const shippingOrders = sortedOrders ? sortedOrders.filter(order => order.fulfillment_status === 'fulfilled') : []
   const shippingFulfillments = shippingOrders
@@ -116,7 +125,7 @@ const Shipping = () => {
   const handleBatchAssign = async (batchId) => {
     // batchId 0 to clear batch
     for (const order of packingOrdersFiltered) {
-      const metadata = batchId === 0 ? { batch: "" } : {
+      const metadata: Metadata = batchId === 0 ? { batch: "" } : {
         batch: {
           batch_created: new Date().toISOString(),
           batch_name: `Batch ${batchId}`,
@@ -556,14 +565,22 @@ const Shipping = () => {
                   {packingOrders?.map((order) => (
                     <Table.Row
                       key={order.id}
-                      className={order.metadata?.batch ? order.metadata.batch.batch_color: ""}
-                    >
+                      className={
+                        typeof order.metadata?.batch === 'object' && 'batch_color' in (order.metadata.batch as BatchMetadata)
+                          ? (order.metadata.batch as BatchMetadata).batch_color
+                          : ""
+                      }
+                      >
                       <Table.Cell>
                         <Checkbox
                           checked={selectedPackingOrders.includes(order.display_id)}
                           onCheckedChange={(checked) => handlePackingCheckbox(checked, order.display_id)}/>
                       </Table.Cell>
-                      <Table.Cell>{order.metadata?.batch?.batch_name}</Table.Cell>
+                      <Table.Cell>
+                        {typeof order.metadata?.batch === 'object'
+                          ? (order.metadata.batch as BatchMetadata).batch_name
+                          : (order.metadata?.batch as string) ?? ""}
+                      </Table.Cell>
                       <Table.Cell>#{order.display_id}</Table.Cell>
                       <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
                       <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
