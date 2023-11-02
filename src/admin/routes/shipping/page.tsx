@@ -1,14 +1,15 @@
 import Medusa from "@medusajs/medusa-js"
 import { RouteConfig } from "@medusajs/admin"
 import React, { useState, useRef } from "react"
-import { Checkbox, Container, Button, Table, Tabs, Input } from "@medusajs/ui"
-import { useAdminOrders } from "medusa-react"
-import { RocketLaunch } from "@medusajs/icons"
+import { Checkbox, Container, Button, IconButton, Table, Tabs, Input } from "@medusajs/ui"
+import { RocketLaunch, CubeSolid, XCircleSolid } from "@medusajs/icons"
 import { formatAmount } from "medusa-react"
 import { Region } from "@medusajs/medusa"
+import { useAdminOrders, useAdminCustomPost } from "medusa-react"
 
 const Shipping = () => {
   const medusa = new Medusa({baseUrl: process.env.MEDUSA_BACKEND_URL, maxRetries: 3})
+  const { mutate } = useAdminCustomPost(`/orders/metadata`,["order-metadata"])
   // state variables
   const [selectedFulfillmentOrders, setSelectedFulfillmentOrders] = useState([])
   const [selectedShippingFulfillments, setSelectedShippingFulfillments] = useState([])
@@ -23,7 +24,7 @@ const Shipping = () => {
     status: ["pending"], // pending, completed, archived, canceled, requires_action
     payment_status: ["captured"], // captured, awaiting, not_paid, refunded, partially_refunded, canceled, requires_action
     // fulfillment_status: [] // not_fulfilled, fulfilled, partially_fulfilled, shipped, partially_shipped, canceled, returned, partially_returned, requires_action
-    fields: "id,display_id,created_at,subtotal,discount_total,gift_card_total,tax_total,shipping_total,total,payment_status,fulfillment_status,status,fulfillments,sales_channel,edits",
+    fields: "id,display_id,created_at,subtotal,discount_total,gift_card_total,tax_total,shipping_total,total,payment_status,fulfillment_status,status,fulfillments,sales_channel,edits,metadata",
     expand: "customer,fulfillments,items,sales_channel,shipping_address,edits,region",
   })
   const sortedOrders = orders ? orders.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) : [];
@@ -33,6 +34,7 @@ const Shipping = () => {
   // for use in packing
   const packingOrders = sortedOrders ? sortedOrders.filter(order => order.fulfillment_status === 'fulfilled') : []
   const packingOrdersFiltered = packingOrders.filter(order => selectedPackingOrders.includes(order.display_id));
+  console.log("packingOrdersFiltered",packingOrdersFiltered)
   // for use in shipping
   const shippingOrders = sortedOrders ? sortedOrders.filter(order => order.fulfillment_status === 'fulfilled') : []
   const shippingFulfillments = shippingOrders
@@ -85,6 +87,16 @@ const Shipping = () => {
   }
 
   // PACKING LOGIC
+  const colors = [
+    'bg-ui-bg-base hover:bg-ui-bg-base-hover',
+    'bg-ui-tag-green-bg hover:bg-ui-tag-green-bg-hover', // green
+    'bg-ui-tag-purple-bg hover:bg-ui-tag-purple-bg-hover', // purple
+    'bg-ui-tag-orange-bg hover:bg-ui-tag-orange-bg-hover', // orange
+    'bg-ui-tag-blue-bg hover:bg-ui-tag-blue-bg-hover', // blue
+    'bg-ui-tag-red-bg hover:bg-ui-tag-red-bg-hover', // red
+    'bg-ui-tag-neutral-bg hover:bg-ui-tag-neutral-bg-hover', // gray
+  ];
+
   const handlePackingCheckbox = (checked, orderId) => {
     if (checked) {
       setSelectedPackingOrders([...selectedPackingOrders, orderId])
@@ -99,6 +111,26 @@ const Shipping = () => {
     } else {
       setSelectedPackingOrders([])
     }
+  };
+
+  const handleBatchAssign = async (batchId) => {
+    // batchId 0 to clear batch
+    for (const order of packingOrdersFiltered) {
+      const metadata = batchId === 0 ? { batch: "" } : {
+        batch: {
+          batch_created: new Date().toISOString(),
+          batch_name: `Batch ${batchId}`,
+          batch_color: colors[batchId],
+        },
+      };
+      try {
+        await mutate({ id: order.id, metadata: metadata });
+      } catch (error) {
+        console.error(`Failed to update order ${order.display_id}:`, error);
+      }
+    }
+    // refetch orders
+    refetch();
   };
 
   const generatePackingList = async () => {
@@ -366,7 +398,7 @@ const Shipping = () => {
 
   const createShipments = async () => {
     // Iterate over each fulfillment and tracking number
-    // TODO: extend this to handle multiple tracking orders (requires modifying the input page as well)
+    // TODO: extend this to handle multiple tracking numbers (requires modifying the input page as well)
     for (const { orderId, fulfillmentId, trackingNumber } of trackingNumbers) {
       try {
         // Make the API request to create the shipment
@@ -411,9 +443,21 @@ const Shipping = () => {
                 <Button onClick={createFulfillments} disabled={selectedFulfillmentOrders.length === 0}>Fulfill Orders{selectedFulfillmentOrders.length > 0 && ` #${selectedFulfillmentOrders.sort((a, b) => a - b).join(", ")}`}</Button>
               </Tabs.Content>
               <Tabs.Content value="packing">
+              <div className="flex space-x-2">
+                <IconButton onClick={() => handleBatchAssign(0)}><XCircleSolid /></IconButton>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <IconButton
+                    key={i}
+                    onClick={() => handleBatchAssign(i+1)}
+                    className={ colors[i+1] }
+                  >
+                    <CubeSolid/>
+                  </IconButton>
+                ))}
                 <Button onClick={generatePackingList}
                   disabled={selectedPackingOrders.length === 0}>Print Packing Lists{selectedPackingOrders.length > 0 && ` for Orders #${selectedPackingOrders.sort((a, b) => a - b).join(", ")}`}
                 </Button>
+              </div>
               </Tabs.Content>
               <Tabs.Content value="shipping">
               {!showTracking ? (
@@ -500,6 +544,7 @@ const Shipping = () => {
                         checked={packingOrders.every((order) => selectedPackingOrders.includes(order.display_id))}
                       />
                     </Table.HeaderCell>
+                    <Table.HeaderCell>Batch</Table.HeaderCell>
                     <Table.HeaderCell>Order#</Table.HeaderCell>
                     <Table.HeaderCell>Date</Table.HeaderCell>
                     <Table.HeaderCell>Shipping To</Table.HeaderCell>
@@ -509,12 +554,16 @@ const Shipping = () => {
                 </Table.Header>
                 <Table.Body>
                   {packingOrders?.map((order) => (
-                    <Table.Row key={order.id}>
+                    <Table.Row
+                      key={order.id}
+                      className={order.metadata?.batch ? order.metadata.batch.batch_color: ""}
+                    >
                       <Table.Cell>
                         <Checkbox
                           checked={selectedPackingOrders.includes(order.display_id)}
                           onCheckedChange={(checked) => handlePackingCheckbox(checked, order.display_id)}/>
                       </Table.Cell>
+                      <Table.Cell>{order.metadata?.batch?.batch_name}</Table.Cell>
                       <Table.Cell>#{order.display_id}</Table.Cell>
                       <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
                       <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
