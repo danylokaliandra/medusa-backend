@@ -72,8 +72,10 @@ class OrderPlacedSubscriber {
         })),
         shipping_address: draftOrderCart.shipping_address,
         subtotal: (draftOrderCart.subtotal / 100).toFixed(2),
-        shipping_total: (draftOrderCart.shipping_total / 100).toFixed(2),
+        discount_total: (draftOrderCart.discount_total / 100).toFixed(2),
+        gift_card_total: (draftOrderCart.gift_card_total / 100).toFixed(2),
         tax_total: (draftOrderCart.tax_total / 100).toFixed(2),
+        shipping_total: (draftOrderCart.shipping_total / 100).toFixed(2),
         total: (draftOrderCart.total / 100).toFixed(2),
         store: store,
         /*data*/ /* add in to see the full data object returned by the event */

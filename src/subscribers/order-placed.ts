@@ -71,8 +71,10 @@ class OrderPlacedSubscriber {
         })),
         shipping_address: order.shipping_address,
         subtotal: (order.subtotal / 100).toFixed(2),
-        shipping_total: (order.shipping_total / 100).toFixed(2),
+        discount_total: (order.discount_total / 100).toFixed(2),
+        gift_card_total: (order.gift_card_total / 100).toFixed(2),        
         tax_total: (order.tax_total / 100).toFixed(2),
+        shipping_total: (order.shipping_total / 100).toFixed(2),
         total: (order.total / 100).toFixed(2),
         store: store,
         /*data*/ /* add in to see the full data object returned by the event */
