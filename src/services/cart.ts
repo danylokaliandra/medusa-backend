@@ -2,6 +2,7 @@ import { Lifetime } from "awilix"
 import CustomerService from "../services/customer"
 import { CartService as MedusaCartService, Cart, OrderService } from "@medusajs/medusa"
 import { MedusaError } from "medusa-core-utils"
+import { getAmount } from "../scripts/get-amount"
 
 type InjectedDependencies = {
   customerService: CustomerService
@@ -62,7 +63,7 @@ class CartService extends MedusaCartService {
 
           // If the total price is less than the minimum spend, throw an error
           if (totalPrice < discount.metadata.minimum_spend) {
-            throw new MedusaError(MedusaError.Types.INVALID_ARGUMENT, `You must spend at least ${(discount.metadata.minimum_spend as number / 100).toFixed(2)} to get this discount`);
+            throw new MedusaError(MedusaError.Types.INVALID_ARGUMENT, `You must spend at least ${getAmount(discount.metadata.minimum_spend as number,cart.region)} to get this discount`);
           }
         }
 

@@ -34,20 +34,30 @@ class OrderCanceledSubscriber {
       relations: ["customer", "sales_channel"],
     })
     const store = getStoreDetails(order.sales_channel)
-    debugLog("handleOrderCanceled running...")
-    this.sendgridEmail(order, store)
-    this.klaviyoEvent(order, store)
+    let email
+    if (!data.resend) {
+      debugLog("handleOrderCanceled running (original event)...")
+      email = order.email
+    } else {
+      debugLog("handleOrderCanceled running (resent event)...")
+      email = data.email
+    }
+    this.sendgridEmail(email, order, store)
+    if (!data.resend) {
+      // send klaviyo event but not for resends
+      this.klaviyoEvent(order, store)
+    }
   }
 
   // SendGrid Email Handler
-  sendgridEmail = (order: any, store) => {
-    debugLog("sending email to:", order.email)
+  sendgridEmail = (email: string, order: any, store) => {
+    debugLog("sending email to:", email)
     debugLog("using template ID:", SENDGRID_ORDER_CANCELED)
     debugLog("using store details:", store)
     this.sendGridService.sendEmail({
       templateId: SENDGRID_ORDER_CANCELED,
       from: SENDGRID_FROM,
-      to: order.email,
+      to: email,
       dynamic_template_data: {
         order_id: order.display_id,
         order_date: new Date(order.created_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),
