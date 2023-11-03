@@ -34,23 +34,33 @@ class OrderPaymentCapturedSubscriber {
       relations: ["customer", "shipping_address", "sales_channel"],
     })
     const store = getStoreDetails(order.sales_channel)
-    debugLog("handleOrderPaymentCaptured running...")
-    if (!data.no_notification) ( // do not send if notifications suppressed
-      this.sendgridEmail(order, store),
-      this.klaviyoEvent(order, store)
-    )
+    let email
+    if (!data.resend) {
+      debugLog("handleOrderPaymentCaptured running (original event)...")
+      email = order.email
+    } else {
+      debugLog("handleOrderPaymentCaptured running (resent event)...")
+      email = data.email
+    }
+    if (!data.no_notification) { // do not send if notifications suppressed
+      this.sendgridEmail(email, order, store)
+      // send klaviyo event but not for resends
+      if (!data.resend) {
+        this.klaviyoEvent(order, store)
+      }
+  }
   }
 
   // SendGrid Email Handler
-  sendgridEmail = (order: any, store) => {
+  sendgridEmail = (email: string, order: any, store) => {
     debugLog("notifications on..."),
     debugLog("using template ID:", SENDGRID_ORDER_PAID),
     debugLog("using store details:", store),
-    debugLog("sending email to:", order.email),
+    debugLog("sending email to:", email),
     this.sendGridService.sendEmail({
       templateId: SENDGRID_ORDER_PAID,
       from: SENDGRID_FROM,
-      to: order.email,
+      to: email,
       dynamic_template_data: {
         order_id: order.display_id,
         order_date: new Date(order.created_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),

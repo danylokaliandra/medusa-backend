@@ -11,9 +11,6 @@ export const POST = async (
   const id = req.params.id
   const email = req.body.email
   const eventName = req.body.eventName
-  console.log("id",id)
-  console.log("email",email)
-  console.log("eventName",eventName)
 
   const eventBusService = req.scope.resolve<EventBusService>("eventBusService")
 
@@ -23,7 +20,12 @@ export const POST = async (
       data: {
         "id": id,
         "email": email,
+        "resend": true,
       },
     }
   ])
+
+  res.json({
+    message: "[POST] Email Event Sender",
+  })
 }

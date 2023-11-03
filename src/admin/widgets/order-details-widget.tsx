@@ -1,5 +1,4 @@
 import { useState } from "react"
-
 import type { OrderDetailsWidgetProps, WidgetConfig } from "@medusajs/admin"
 import { Container, Button, RadioGroup, Label, Input } from "@medusajs/ui"
 import { useAdminCustomPost, useAdminGetSession } from "medusa-react"
@@ -12,14 +11,11 @@ const OrderDetailsWidget = ({ order }: OrderDetailsWidgetProps) => {
   )
   const [selectedEmail, setSelectedEmail] = useState(order.customer.email)
   const [customEmail, setCustomEmail] = useState("")
-  // TODO: need validation on custom email
   const emailToSend = selectedEmail === "custom" ? customEmail : selectedEmail
-  console.log("emailToSend",emailToSend)
 
   const resendEmail = (eventName) => {
-    console.log(`resendOrderConfirmation for ${eventName}`)
     mutate({
-      email: selectedEmail,
+      email: emailToSend,
       eventName: eventName,
     })
   }
@@ -32,6 +28,11 @@ const OrderDetailsWidget = ({ order }: OrderDetailsWidgetProps) => {
     } else {
       return "Other [select to enter]"
     }
+  }
+
+  const isValidEmail = (email) => {
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    return re.test(String(email).toLowerCase())
   }
 
   return (
@@ -57,21 +58,25 @@ const OrderDetailsWidget = ({ order }: OrderDetailsWidgetProps) => {
                 {getCustomLabel()}
               </Label>
               {selectedEmail === "custom" && (
-                <Input
-                  size="small"
-                  value={customEmail}
-                  onChange={(e) => setCustomEmail(e.target.value)}
-                  placeholder="Enter Other Email"
-                />
+                <div className="flex items-center">
+                  <Input
+                    size="small"
+                    value={customEmail}
+                    onChange={(e) => setCustomEmail(e.target.value)}
+                    placeholder="Enter Other Email"
+                  />
+                  {!isValidEmail(customEmail) && (
+                    <span className="text-red-500 ml-2">Note: enter valid email.</span>
+                  )}
+              </div>
               )}
             </div>
           </RadioGroup>
           <div className="flex justify-between mt-3">
-            <Button variant="secondary" onClick={() => resendEmail("order.placed.resend")}>Resend Placed</Button>
-            <Button variant="secondary" onClick={() => resendEmail("order.payment_captured.resend")}>Resend Paid</Button>
-            <Button variant="secondary" onClick={() => resendEmail("order.shipment_created.resend")}>Resend Shipped</Button>
-            <Button variant="secondary" disabled={true} onClick={() => resendEmail("order.canceled.resend")}>Resend Canceled</Button>
-            {/* TODO: make the buttons only appear when the appropriate status is reached */}
+            <Button variant="secondary" onClick={() => resendEmail("order.placed")} disabled={!isValidEmail(emailToSend)}>Resend Order Confirmation</Button>
+            <Button variant="secondary" onClick={() => resendEmail("order.payment_captured")} disabled={!isValidEmail(emailToSend) || !["captured", "refunded", "partially_refunded"].includes(order.payment_status)}>Resend Payment Confirmation</Button>
+            <Button variant="secondary" onClick={() => resendEmail("order.shipment_created")} disabled={!isValidEmail(emailToSend) || order.fulfillment_status !== "shipped"}>Resend Shipment Confirmation</Button>
+            <Button variant="secondary" onClick={() => resendEmail("order.canceled")} disabled={!isValidEmail(emailToSend) || order.status !== "canceled"}>Resend Cancellation Confirmation</Button>
           </div>
         </div>
       </Container>
