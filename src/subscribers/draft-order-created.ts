@@ -1,6 +1,6 @@
-import { EventBusService, DraftOrderService, CartService } from "@medusajs/medusa"
+import { EventBusService, DraftOrderService, CartService, Region } from "@medusajs/medusa"
 import { getStoreDetails } from "../scripts/sales-channel";
-import { formatAmount } from "medusa-react"
+import { getAmount } from "../scripts/get-amount"
 import { debugLog } from "../scripts/debug"
 
 const SENDGRID_ORDER_PLACED = process.env.SENDGRID_ORDER_PLACED
@@ -12,6 +12,13 @@ type InjectedDependencies = {
   cartService: CartService,
   sendgridService: any
 }
+
+/* const getAmount = (amount, region: Region ) => {
+  if (!amount) {
+    return
+  }
+  return formatAmount({ amount, region, includeTaxes: false })
+} */
 
 class OrderPlacedSubscriber {
   protected readonly draftOrderService_: DraftOrderService
@@ -44,6 +51,7 @@ class OrderPlacedSubscriber {
       const draftOrderCart = await this.cartService_.retrieveWithTotals(draftOrder.cart_id, {
         relations: ["sales_channel", "customer"],
       })
+      console.log("draftOrderCart",draftOrderCart)
       const store = getStoreDetails(draftOrderCart.sales_channel)
       let email
       email = data.email
@@ -68,17 +76,17 @@ class OrderPlacedSubscriber {
         items: draftOrderCart.items.map((item) => ({
           title: item.title,
           quantity: item.quantity,
-          total: (item.total / 100).toFixed(2),
+          total: getAmount(item.total, draftOrderCart.region),
         })),
         shipping_address: draftOrderCart.shipping_address,
-        subtotal: (draftOrderCart.subtotal / 100).toFixed(2),
+        subtotal: getAmount(draftOrderCart.subtotal, draftOrderCart.region),
         discount: draftOrderCart.discount_total > 0 ? true : false,
-        discount_total: (draftOrderCart.discount_total / 100).toFixed(2),
+        discount_total: getAmount(draftOrderCart.discount_total, draftOrderCart.region),
         gift_card: draftOrderCart.gift_card_total > 0 ? true : false,
-        gift_card_total: (draftOrderCart.gift_card_total / 100).toFixed(2),
-        tax_total: (draftOrderCart.tax_total / 100).toFixed(2),
-        shipping_total: (draftOrderCart.shipping_total / 100).toFixed(2),
-        total: (draftOrderCart.total / 100).toFixed(2),
+        gift_card_total: getAmount(draftOrderCart.gift_card_total, draftOrderCart.region),
+        tax_total: getAmount(draftOrderCart.tax_total, draftOrderCart.region),
+        shipping_total: getAmount(draftOrderCart.shipping_total, draftOrderCart.region),
+        total: getAmount(draftOrderCart.total,draftOrderCart.region),
         store: store,
         /*data*/ /* add in to see the full data object returned by the event */
       }

@@ -1,6 +1,7 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
 import { createEvent } from "../scripts/klaviyo"
 import { getStoreDetails } from "../scripts/sales-channel";
+import { getAmount } from "../scripts/get-amount"
 import { debugLog } from "../scripts/debug"
 
 const SENDGRID_ORDER_PLACED = process.env.SENDGRID_ORDER_PLACED
@@ -67,17 +68,17 @@ class OrderPlacedSubscriber {
         items: order.items.map((item) => ({
           title: item.title,
           quantity: item.quantity,
-          total: (item.total / 100).toFixed(2),
+          total: getAmount(item.total, order.region),
         })),
         shipping_address: order.shipping_address,
-        subtotal: (order.subtotal / 100).toFixed(2),
+        subtotal: getAmount(order.subtotal, order.region),
         discount: order.discount_total > 0 ? true : false,
-        discount_total: (order.discount_total / 100).toFixed(2),
+        discount_total: getAmount(order.discount_total, order.region),
         gift_card: order.gift_card > 0 ? true : false,
-        gift_card_total: (order.gift_card_total / 100).toFixed(2),
-        tax_total: (order.tax_total / 100).toFixed(2),
-        shipping_total: (order.shipping_total / 100).toFixed(2),
-        total: (order.total / 100).toFixed(2),
+        gift_card_total: getAmount(order.gift_card_total, order.region),
+        tax_total: getAmount(order.tax_total, order.region),
+        shipping_total: getAmount(order.shipping_total, order.region),
+        total: getAmount(order.total,order.region),
         store: store,
         /*data*/ /* add in to see the full data object returned by the event */
       }
