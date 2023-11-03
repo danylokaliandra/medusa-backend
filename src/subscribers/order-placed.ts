@@ -1,6 +1,7 @@
 import { EventBusService, OrderService } from "@medusajs/medusa"
 import { createEvent } from "../scripts/klaviyo"
 import { getStoreDetails } from "../scripts/sales-channel";
+import { getAmount } from "../scripts/get-amount"
 import { debugLog } from "../scripts/debug"
 
 const SENDGRID_ORDER_PLACED = process.env.SENDGRID_ORDER_PLACED
@@ -34,20 +35,31 @@ class OrderPlacedSubscriber {
       relations: ["items", "customer", "shipping_address", "sales_channel"],
     })
     const store = getStoreDetails(order.sales_channel)
-    debugLog("handleOrderPlaced running...")
-    this.sendgridEmail(order, store)
-    this.klaviyoEvent(order, store)
+    let email
+    if (!data.resend) {
+      debugLog("handleOrderPlaced running (original event)...")
+      email = order.email
+    } else {
+      debugLog("handleOrderPlaced running (resent event)...")
+      email = data.email
+    }
+
+    this.sendgridEmail(email, order, store)
+    // send klaviyo event but not for resends
+    if (!data.resend) {
+      this.klaviyoEvent(order, store)
+    }
   }
 
   // SendGrid Email Handler
-  sendgridEmail = (order: any, store) => {
-    debugLog("sending email to:", order.email)
+  sendgridEmail = (email: string, order: any, store) => {
+    debugLog("sending email to:", email)
     debugLog("using template ID:", SENDGRID_ORDER_PLACED)
     debugLog("using store details:", store)
     this.sendGridService.sendEmail({
       templateId: SENDGRID_ORDER_PLACED,
       from: SENDGRID_FROM,
-      to: order.email,
+      to: email,
       dynamic_template_data: {
         order_id: order.display_id,
         order_date: new Date(order.created_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),
@@ -56,13 +68,17 @@ class OrderPlacedSubscriber {
         items: order.items.map((item) => ({
           title: item.title,
           quantity: item.quantity,
-          total: (item.total / 100).toFixed(2),
+          total: getAmount(item.total, order.region),
         })),
         shipping_address: order.shipping_address,
-        subtotal: (order.subtotal / 100).toFixed(2),
-        shipping_total: (order.shipping_total / 100).toFixed(2),
-        tax_total: (order.tax_total / 100).toFixed(2),
-        total: (order.total / 100).toFixed(2),
+        subtotal: getAmount(order.subtotal, order.region),
+        discount: order.discount_total > 0 ? true : false,
+        discount_total: getAmount(order.discount_total, order.region),
+        gift_card: order.gift_card > 0 ? true : false,
+        gift_card_total: getAmount(order.gift_card_total, order.region),
+        tax_total: getAmount(order.tax_total, order.region),
+        shipping_total: getAmount(order.shipping_total, order.region),
+        total: getAmount(order.total,order.region),
         store: store,
         /*data*/ /* add in to see the full data object returned by the event */
       }
