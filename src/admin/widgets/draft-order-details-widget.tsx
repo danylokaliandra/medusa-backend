@@ -24,7 +24,7 @@ const DraftOrderSalesChannelWidget = ({ draftOrder }: DraftOrderDetailsWidgetPro
     updateCart.mutate({ sales_channel_id: value })
   }
 
-  const resendEmail = (eventName) => {
+  const sendEmail = (eventName) => {
     mutate({
       email: emailToSend,
       eventName: eventName,
@@ -56,7 +56,7 @@ const DraftOrderSalesChannelWidget = ({ draftOrder }: DraftOrderDetailsWidgetPro
   }, [isLoadingSalesChannel, sales_channels, draftOrder])
 
   return (
-    <div className="flex flex-col">
+    <div className="flex justify-between gap-4">
       { !isLoadingSalesChannel && !isLoadingUser && sales_channels && draftOrder.status === 'open' && (
       <Container className={`${selectedChannel === defaultSalesChannelId ? 'bg-ui-tag-orange-bg' : ''}`}>
           <div>
@@ -118,7 +118,7 @@ const DraftOrderSalesChannelWidget = ({ draftOrder }: DraftOrderDetailsWidgetPro
               </div>
             </RadioGroup>
             <div className="flex justify-between mt-3">
-              <Button variant="secondary" onClick={() => resendEmail("draft_order.created")} disabled={!isValidEmail(emailToSend)}>Resend Draft Order</Button>
+              <Button variant="secondary" onClick={() => sendEmail("draft_order.created")} disabled={!isValidEmail(emailToSend)}>Send Draft Order Confirmation</Button>
             </div>
           </div>
         </Container>
