@@ -1,7 +1,4 @@
-import { Lifetime } from "awilix"
 import PublishableApiKeyService from "@medusajs/medusa/dist/services/publishable-api-key"
-import { NextFunction, Request, Response } from "express"
-import { debugLog } from "../../scripts/debug";
 
 export async function registerSalesChannelID(req, res, next) {
   // resolve publishable key service
