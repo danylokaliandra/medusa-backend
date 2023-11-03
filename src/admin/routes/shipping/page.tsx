@@ -195,7 +195,7 @@ const Shipping = () => {
       // Order Header
       html += `
         <div class="bg-gray-300 text-center py-1">
-          <h1 class="text-lg font-bold">PACKING SLIP FOR ORDER #${String(order.display_id).padStart(8, '0')}</h1>
+          <h1 class="text-lg font-bold">Packing Slip for Order #${String(order.display_id).padStart(8, '0')}${order.metadata.batch && ` (${(order.metadata.batch as BatchMetadata).batch_name})`}</h1>
         </div>
         <div class="flex justify-between items-center py-1">
           <div>
