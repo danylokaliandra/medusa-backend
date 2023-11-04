@@ -7,12 +7,12 @@ import type {
 import PublishableApiKeyService from "@medusajs/medusa/dist/services/publishable-api-key"
 import { debugLog } from "../scripts/debug"
 
+// middleware to use the publishable API key to register the sales channel on every request from the store
 const salesChannelMiddleware = async (
   req: MedusaRequest, 
   res: MedusaResponse, 
   next: MedusaNextFunction
 ) => {
-  debugLog("running salesChannelMiddleware")
   // resolve publishable key service
   const publishableKeyService: PublishableApiKeyService = req.scope.resolve("publishableApiKeyService")
   // Retrieve x-publishable-api-key
@@ -21,9 +21,7 @@ const salesChannelMiddleware = async (
   const channels = await publishableKeyService.listSalesChannels(pubKey)
   // return key of first sales channel
   const sales_channel_id = String(channels[0]?.id)
-
-  debugLog("pubKey",pubKey)
-  debugLog("sales_channel_id",sales_channel_id)
+  debugLog(`running salesChannelMiddleware for sales channel '${channels[0]?.name}'`)
 
   // Register the Sales Channel ID
   req.scope.register({
