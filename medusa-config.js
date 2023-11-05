@@ -105,6 +105,20 @@ const plugins = [
         secret_access_key: S3_SECRET_ACCESS_KEY,
     },
   },
+  {
+    resolve: `@devon/medusa-file-bunny`,
+    options: {
+      storage: {
+        apiKey: process.env.BUNNY_API_KEY,
+        storageUploadEndPoint: process.env.BUNNY_STORAGE_UPLOAD_ENDPOINT,
+        storageZoneName: process.env.BUNNY_STORAGE_ZONE_NAME,
+        storagePath: process.env.BUNNY_STORAGE_PATH,
+      },
+      cdn: {
+        pullZoneEndPoint: process.env.BUNNY_PULLZONE_ENDPOINT,
+      },
+    },
+  },
 ];
 
 // MODULES

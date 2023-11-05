@@ -3764,6 +3764,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@devon/medusa-file-bunny@npm:^0.0.5":
+  version: 0.0.5
+  resolution: "@devon/medusa-file-bunny@npm:0.0.5"
+  dependencies:
+    node-fetch: ^2.6.11
+    stream: ^0.0.2
+  peerDependencies:
+    "@medusajs/medusa": ^1.16.1
+    medusa-interfaces: ^1.3.7
+  checksum: 5eda809722688f6f89ff41ddb3b31e90999bf0e65cc551a76294b7468f382c4ca6e43a31e1ba60b4baf4ee4e375fb2e2a39e51b669b2811c3dd357aa9c7c1c94
+  languageName: node
+  linkType: hard
+
 "@emotion/babel-plugin@npm:^11.11.0":
   version: 11.11.0
   resolution: "@emotion/babel-plugin@npm:11.11.0"
@@ -12917,6 +12930,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"emitter-component@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "emitter-component@npm:1.1.1"
+  checksum: 10e907f507a8c16a318e07595119e58b5c3267528d4e3b962ee9b14fd83c97599e7931ccb983ec551a8de8116955c1d6ae7d213c5b0c920b62c02b7cb8d7a4d7
+  languageName: node
+  linkType: hard
+
 "emittery@npm:^0.12.1":
   version: 0.12.1
   resolution: "emittery@npm:0.12.1"
@@ -16472,6 +16492,7 @@ __metadata:
     "@babel/cli": ^7.14.3
     "@babel/core": ^7.14.3
     "@babel/preset-typescript": ^7.21.4
+    "@devon/medusa-file-bunny": ^0.0.5
     "@medusajs/admin": 7.1.6
     "@medusajs/cache-inmemory": ^1.8.9
     "@medusajs/cache-redis": ^1.8.9
@@ -20357,6 +20378,15 @@ __metadata:
     inherits: ~2.0.4
     readable-stream: ^3.5.0
   checksum: 4c47ef64d6f03815a9ca3874e2319805e8e8a85f3550776c47ce523b6f4c6cd57f40e46ec6a9ab8ad260fde61863c2718f250d3bedb3fe9052444eb9abfd9921
+  languageName: node
+  linkType: hard
+
+"stream@npm:^0.0.2":
+  version: 0.0.2
+  resolution: "stream@npm:0.0.2"
+  dependencies:
+    emitter-component: ^1.1.1
+  checksum: 43d89e176c282234d452754f9b55a82c74ea68345bf6176af32c4c213801f88df7984c83ec5a735457705dddf4668373edb9f0ec270a7491e1d881631a763978
   languageName: node
   linkType: hard
 
