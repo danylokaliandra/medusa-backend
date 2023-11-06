@@ -108,15 +108,12 @@ const plugins = [
   {
     resolve: `@devon/medusa-file-bunny`,
     options: {
-      storage: {
-        apiKey: process.env.BUNNY_API_KEY,
-        storageUploadEndPoint: process.env.BUNNY_STORAGE_UPLOAD_ENDPOINT,
-        storageZoneName: process.env.BUNNY_STORAGE_ZONE_NAME,
-        storagePath: process.env.BUNNY_STORAGE_PATH,
-      },
-      cdn: {
-        pullZoneEndPoint: process.env.BUNNY_PULLZONE_ENDPOINT,
-      },
+      storageAccessKey: process.env.BUNNY_STORAGE_ACCESS_KEY,
+      storageEndpoint: process.env.BUNNY_STORAGE_ENDPOINT,
+      storageZoneName: process.env.BUNNY_STORAGE_ZONE_NAME,
+      storagePath: process.env.BUNNY_STORAGE_PATH,
+      pullZoneDomain: process.env.BUNNY_PULL_ZONE_DOMAIN,
+
     },
   },
 ];
