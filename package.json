@@ -28,6 +28,7 @@
     "start:prod": "cross-env NODE_ENV=production yarn start",
     "start:custom": "cross-env npm run build && node --preserve-symlinks index.js",
     "dev": "cross-env npm run build && medusa develop",
+    "dev:custom": "cross-env npm run build && medusa develop -- --preserve-symlinks",
     "backup": "node src/scripts/db-backup.js",
     "backup:dev": "cross-env NODE_ENV=development npm run backup",
     "backup:staging": "cross-env NODE_ENV=staging npm run backup",
@@ -36,6 +37,7 @@
   },
   "dependencies": {
     "@babel/preset-typescript": "^7.21.4",
+    "@devon/medusa-file-bunny": "^0.0.7",
     "@medusajs/admin": "7.1.6",
     "@medusajs/cache-inmemory": "^1.8.9",
     "@medusajs/cache-redis": "^1.8.9",
