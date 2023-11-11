@@ -547,7 +547,7 @@ const Shipping = () => {
                       onClick={(event) => {
                         // ignore if the target is the checkbox column
                         if ((event.target as Element).closest('.ignoreClick')) return;
-                        window.open(`/a/orders/${order.id}`, '_blank');
+                        window.open(`/app/a/orders/${order.id}`, '_blank');
                       }}
                     >
                       <Table.Cell className="ignoreClick">
@@ -605,7 +605,7 @@ const Shipping = () => {
                       onClick={(event) => {
                         // ignore if the target is the checkbox column
                         if ((event.target as Element).closest('.ignoreClick')) return;
-                        window.open(`/a/orders/${order.id}`, '_blank');
+                        window.open(`/app/a/orders/${order.id}`, '_blank');
                       }}
                       className={
                         typeof order.metadata?.batch === 'object' && 'batch_color' in (order.metadata.batch as BatchMetadata)
@@ -673,7 +673,7 @@ const Shipping = () => {
                             onClick={(event) => {
                               // ignore if the target is the checkbox column
                               if ((event.target as Element).closest('.ignoreClick')) return;
-                              window.open(`/a/orders/${order.id}`, '_blank');
+                              window.open(`/app/a/orders/${order.id}`, '_blank');
                             }}
                             className={isPartialShipment ? "bg-ui-bg-highlight-hover" : "white"}
                           >
@@ -727,7 +727,7 @@ const Shipping = () => {
                             onClick={(event) => {
                               // ignore if the target is the checkbox column
                               if ((event.target as Element).closest('.ignoreClick')) return;
-                              window.open(`/a/orders/${order.id}`, '_blank');
+                              window.open(`/app/a/orders/${order.id}`, '_blank');
                             }}
                           >
                             <Table.Cell>#{order.display_id}</Table.Cell>
