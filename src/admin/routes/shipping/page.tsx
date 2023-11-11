@@ -152,12 +152,12 @@ const Shipping = () => {
       city: order.shipping_address.city,
       province: order.shipping_address.province,
       postal_code: order.shipping_address.postal_code,
-      country: order.shipping_address.country,
     }));
   };
 
   const handleCSVDownload = () => {
     setDownloadCSVKey(Date.now()); // Use the current timestamp as a unique key
+    setTimeout(() => setDownloadCSVKey(null), 500); // Reset the key after 0.5s
   }
 
   const generatePackingList = async () => {
@@ -481,8 +481,7 @@ const Shipping = () => {
                     <CubeSolid/>
                   </IconButton>
                 ))}
-                <Button onClick={handleCSVDownload}
-                  disabled={selectedPackingOrders.length === 0}>
+                <Button onClick={handleCSVDownload} disabled={selectedPackingOrders.length === 0}>
                   Export Addresses
                 </Button>
                 {downloadCSVKey && (
@@ -490,7 +489,6 @@ const Shipping = () => {
                     key={downloadCSVKey}
                     data={generateCSVData()}
                     target="_blank"
-                    onDownload={() => setDownloadCSVKey(null)}
                   />
                 )}
                 <Button onClick={generatePackingList}
