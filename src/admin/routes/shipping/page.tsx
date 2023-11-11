@@ -534,7 +534,7 @@ const Shipping = () => {
                     </Table.HeaderCell>
                     <Table.HeaderCell>Order#</Table.HeaderCell>
                     <Table.HeaderCell>Date</Table.HeaderCell>
-                    <Table.HeaderCell>Placed By</Table.HeaderCell>
+                    <Table.HeaderCell>Shipping To</Table.HeaderCell>
                     <Table.HeaderCell>Items</Table.HeaderCell>
                     <Table.HeaderCell>Total</Table.HeaderCell>
                     <Table.HeaderCell>Sales Channel</Table.HeaderCell>
@@ -542,15 +542,22 @@ const Shipping = () => {
                 </Table.Header>
                 <Table.Body>
                   {fulfillmentOrders?.map((order) => (
-                    <Table.Row key={order.id}>
-                      <Table.Cell>
+                    <Table.Row
+                      key={order.id}
+                      onClick={(event) => {
+                        // ignore if the target is the checkbox column
+                        if ((event.target as Element).closest('.ignoreClick')) return;
+                        window.open(`/a/orders/${order.id}`, '_blank');
+                      }}
+                    >
+                      <Table.Cell className="ignoreClick">
                         <Checkbox
                           checked={selectedFulfillmentOrders.includes(order.display_id)}
                           onCheckedChange={(checked) => handleFulfillmentCheckbox(checked, order.display_id)}/>
                       </Table.Cell>
                       <Table.Cell>#{order.display_id}</Table.Cell>
                       <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
-                      <Table.Cell>{order.customer.first_name} {order.customer.last_name}</Table.Cell>
+                      <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
                       <Table.Cell>
                         {order.items.map((item) => (
                           <div key={item.variant_id}>
@@ -595,13 +602,18 @@ const Shipping = () => {
                   {packingOrders?.map((order) => (
                     <Table.Row
                       key={order.id}
+                      onClick={(event) => {
+                        // ignore if the target is the checkbox column
+                        if ((event.target as Element).closest('.ignoreClick')) return;
+                        window.open(`/a/orders/${order.id}`, '_blank');
+                      }}
                       className={
                         typeof order.metadata?.batch === 'object' && 'batch_color' in (order.metadata.batch as BatchMetadata)
                           ? (order.metadata.batch as BatchMetadata).batch_color
                           : ""
                       }
                       >
-                      <Table.Cell>
+                      <Table.Cell className="ignoreClick">
                         <Checkbox
                           checked={selectedPackingOrders.includes(order.display_id)}
                           onCheckedChange={(checked) => handlePackingCheckbox(checked, order.display_id)}/>
@@ -656,8 +668,16 @@ const Shipping = () => {
                           return !fulfillmentItem || fulfillmentItem.quantity !== orderItem.quantity;
                         })
                         return (
-                          <Table.Row key={fulfillment.id} className={isPartialShipment ? "bg-ui-bg-highlight-hover" : "white"}>
-                            <Table.Cell>
+                          <Table.Row
+                            key={fulfillment.id}
+                            onClick={(event) => {
+                              // ignore if the target is the checkbox column
+                              if ((event.target as Element).closest('.ignoreClick')) return;
+                              window.open(`/a/orders/${order.id}`, '_blank');
+                            }}
+                            className={isPartialShipment ? "bg-ui-bg-highlight-hover" : "white"}
+                          >
+                            <Table.Cell className="ignoreClick">
                               <Checkbox
                                 checked={selectedShippingFulfillments.includes(fulfillment.id)}
                                 onCheckedChange={(checked) => handleShippingCheckbox(checked, fulfillment.id)}
@@ -702,7 +722,14 @@ const Shipping = () => {
                         if (fulfillment.canceled_at) { return null } // Skip if fulfillment cancelled
                         if (!selectedShippingFulfillments.includes(fulfillment.id)) { return null } // Skip if fulfillment is not selected
                         const row = (
-                          <Table.Row key={fulfillment.id}>
+                          <Table.Row
+                            key={fulfillment.id}
+                            onClick={(event) => {
+                              // ignore if the target is the checkbox column
+                              if ((event.target as Element).closest('.ignoreClick')) return;
+                              window.open(`/a/orders/${order.id}`, '_blank');
+                            }}
+                          >
                             <Table.Cell>#{order.display_id}</Table.Cell>
                             <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
                             <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
@@ -717,7 +744,7 @@ const Shipping = () => {
                               );
                             })}
                             </Table.Cell>
-                            <Table.Cell>
+                            <Table.Cell className="ignoreClick">
                               <Input
                                 ref={(ref) => {
                                   const index = shippingFulfillmentsFiltered.findIndex(
