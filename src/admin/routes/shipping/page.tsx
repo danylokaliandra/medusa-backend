@@ -6,6 +6,7 @@ import { RocketLaunch, CubeSolid, XCircleSolid } from "@medusajs/icons"
 import { formatAmount } from "medusa-react"
 import { Region } from "@medusajs/medusa"
 import { useAdminOrders, useAdminCustomPost } from "medusa-react"
+import { CSVDownload } from "react-csv";
 
 interface BatchMetadata {
   batch_created: string
@@ -27,6 +28,7 @@ const Shipping = () => {
   const [showTracking, setShowTracking] = useState(false);
   const [trackingNumbers, setTrackingNumbers] = useState(new Array(selectedShippingFulfillments.length).fill({ fulfillmentId: "", trackingNumber: "" }));
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [downloadCSVKey, setDownloadCSVKey] = useState(null);
   // overall orders
   const { orders, isLoading, error, refetch } = useAdminOrders({
     limit: 0, // no limit (grab all orders)
@@ -141,6 +143,22 @@ const Shipping = () => {
     // refetch orders
     refetch();
   };
+
+  const generateCSVData = () => {
+    return packingOrdersFiltered.map(order => ({
+      name: order.shipping_address.first_name + (order.shipping_address.last_name ? ` ${order.shipping_address.last_name}` : '') ,
+      address_1: order.shipping_address.address_1,
+      address_2: order.shipping_address.address_2,
+      city: order.shipping_address.city,
+      province: order.shipping_address.province,
+      postal_code: order.shipping_address.postal_code,
+      country: order.shipping_address.country,
+    }));
+  };
+
+  const handleCSVDownload = () => {
+    setDownloadCSVKey(Date.now()); // Use the current timestamp as a unique key
+  }
 
   const generatePackingList = async () => {
     // CSS content based on Tailwind CSS
@@ -463,6 +481,18 @@ const Shipping = () => {
                     <CubeSolid/>
                   </IconButton>
                 ))}
+                <Button onClick={handleCSVDownload}
+                  disabled={selectedPackingOrders.length === 0}>
+                  Export Addresses
+                </Button>
+                {downloadCSVKey && (
+                  <CSVDownload
+                    key={downloadCSVKey}
+                    data={generateCSVData()}
+                    target="_blank"
+                    onDownload={() => setDownloadCSVKey(null)}
+                  />
+                )}
                 <Button onClick={generatePackingList}
                   disabled={selectedPackingOrders.length === 0}>Print Packing Lists{selectedPackingOrders.length > 0 && ` for Orders #${selectedPackingOrders.sort((a, b) => a - b).join(", ")}`}
                 </Button>
@@ -504,7 +534,7 @@ const Shipping = () => {
                     </Table.HeaderCell>
                     <Table.HeaderCell>Order#</Table.HeaderCell>
                     <Table.HeaderCell>Date</Table.HeaderCell>
-                    <Table.HeaderCell>Placed By</Table.HeaderCell>
+                    <Table.HeaderCell>Shipping To</Table.HeaderCell>
                     <Table.HeaderCell>Items</Table.HeaderCell>
                     <Table.HeaderCell>Total</Table.HeaderCell>
                     <Table.HeaderCell>Sales Channel</Table.HeaderCell>
@@ -512,15 +542,22 @@ const Shipping = () => {
                 </Table.Header>
                 <Table.Body>
                   {fulfillmentOrders?.map((order) => (
-                    <Table.Row key={order.id}>
-                      <Table.Cell>
+                    <Table.Row
+                      key={order.id}
+                      onClick={(event) => {
+                        // ignore if the target is the checkbox column
+                        if ((event.target as Element).closest('.ignoreClick')) return;
+                        window.open(`/a/orders/${order.id}`, '_blank');
+                      }}
+                    >
+                      <Table.Cell className="ignoreClick">
                         <Checkbox
                           checked={selectedFulfillmentOrders.includes(order.display_id)}
                           onCheckedChange={(checked) => handleFulfillmentCheckbox(checked, order.display_id)}/>
                       </Table.Cell>
                       <Table.Cell>#{order.display_id}</Table.Cell>
                       <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
-                      <Table.Cell>{order.customer.first_name} {order.customer.last_name}</Table.Cell>
+                      <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
                       <Table.Cell>
                         {order.items.map((item) => (
                           <div key={item.variant_id}>
@@ -565,13 +602,18 @@ const Shipping = () => {
                   {packingOrders?.map((order) => (
                     <Table.Row
                       key={order.id}
+                      onClick={(event) => {
+                        // ignore if the target is the checkbox column
+                        if ((event.target as Element).closest('.ignoreClick')) return;
+                        window.open(`/a/orders/${order.id}`, '_blank');
+                      }}
                       className={
                         typeof order.metadata?.batch === 'object' && 'batch_color' in (order.metadata.batch as BatchMetadata)
                           ? (order.metadata.batch as BatchMetadata).batch_color
                           : ""
                       }
                       >
-                      <Table.Cell>
+                      <Table.Cell className="ignoreClick">
                         <Checkbox
                           checked={selectedPackingOrders.includes(order.display_id)}
                           onCheckedChange={(checked) => handlePackingCheckbox(checked, order.display_id)}/>
@@ -626,8 +668,16 @@ const Shipping = () => {
                           return !fulfillmentItem || fulfillmentItem.quantity !== orderItem.quantity;
                         })
                         return (
-                          <Table.Row key={fulfillment.id} className={isPartialShipment ? "bg-ui-bg-highlight-hover" : "white"}>
-                            <Table.Cell>
+                          <Table.Row
+                            key={fulfillment.id}
+                            onClick={(event) => {
+                              // ignore if the target is the checkbox column
+                              if ((event.target as Element).closest('.ignoreClick')) return;
+                              window.open(`/a/orders/${order.id}`, '_blank');
+                            }}
+                            className={isPartialShipment ? "bg-ui-bg-highlight-hover" : "white"}
+                          >
+                            <Table.Cell className="ignoreClick">
                               <Checkbox
                                 checked={selectedShippingFulfillments.includes(fulfillment.id)}
                                 onCheckedChange={(checked) => handleShippingCheckbox(checked, fulfillment.id)}
@@ -672,7 +722,14 @@ const Shipping = () => {
                         if (fulfillment.canceled_at) { return null } // Skip if fulfillment cancelled
                         if (!selectedShippingFulfillments.includes(fulfillment.id)) { return null } // Skip if fulfillment is not selected
                         const row = (
-                          <Table.Row key={fulfillment.id}>
+                          <Table.Row
+                            key={fulfillment.id}
+                            onClick={(event) => {
+                              // ignore if the target is the checkbox column
+                              if ((event.target as Element).closest('.ignoreClick')) return;
+                              window.open(`/a/orders/${order.id}`, '_blank');
+                            }}
+                          >
                             <Table.Cell>#{order.display_id}</Table.Cell>
                             <Table.Cell>{new Date(order.created_at).toDateString()}</Table.Cell>
                             <Table.Cell>{order.shipping_address.first_name} {order.shipping_address.last_name}</Table.Cell>
@@ -687,7 +744,7 @@ const Shipping = () => {
                               );
                             })}
                             </Table.Cell>
-                            <Table.Cell>
+                            <Table.Cell className="ignoreClick">
                               <Input
                                 ref={(ref) => {
                                   const index = shippingFulfillmentsFiltered.findIndex(

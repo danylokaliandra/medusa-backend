@@ -2667,16 +2667,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@devon/medusa-file-bunny@npm:^0.0.6":
-  version: 0.0.6
-  resolution: "@devon/medusa-file-bunny@npm:0.0.6"
+"@devon/medusa-file-bunny@npm:^0.0.7":
+  version: 0.0.7
+  resolution: "@devon/medusa-file-bunny@npm:0.0.7"
   dependencies:
     node-fetch: ^2.6.11
     stream: ^0.0.2
   peerDependencies:
     "@medusajs/medusa": ^1.16.1
     medusa-interfaces: ^1.3.7
-  checksum: 79504eaae9bec9d3dc3505353af25a9452785f0410d671758f9d6ec9dd6faf0d5888a7758641ed52d093ff32eb9bde3db098efc338ff73d118388c73127e198d
+  checksum: a375de58ecaec9ed401d59a820fb4ddc1785d1b670f003685fef41fe84093c081809237cf5082690a3c1b268a010c4b481051e9a61eb294a6ca53cde8c45cac7
   languageName: node
   linkType: hard
 
@@ -14696,7 +14696,7 @@ __metadata:
     "@babel/cli": ^7.14.3
     "@babel/core": ^7.14.3
     "@babel/preset-typescript": ^7.21.4
-    "@devon/medusa-file-bunny": ^0.0.6
+    "@devon/medusa-file-bunny": ^0.0.7
     "@medusajs/admin": 7.1.6
     "@medusajs/cache-inmemory": ^1.8.9
     "@medusajs/cache-redis": ^1.8.9
@@ -14724,6 +14724,7 @@ __metadata:
     medusa-plugin-filestorage-local: ^0.1.2
     medusa-plugin-sendgrid: ^1.3.11
     mongoose: ^5.13.14
+    react-csv: ^2.2.2
     rimraf: ^3.0.2
     ts-jest: ^27.0.7
     ts-loader: ^9.2.6
@@ -16950,6 +16951,13 @@ __metadata:
   peerDependencies:
     react: ">=16"
   checksum: d032dac7d342b6aab8efc77552acc91939a8f78edc158a54972180834ff591e4c01f1f3ecced7eeaabd98cbb26db9ea7ce64892facade3157380a91f226e9161
+  languageName: node
+  linkType: hard
+
+"react-csv@npm:^2.2.2":
+  version: 2.2.2
+  resolution: "react-csv@npm:2.2.2"
+  checksum: a6ffabd67fc9ba1478b003977923cfa3ccdd9553ac5edcc3824b4a5ea849b87cb2acfcc0781b0cd0a259bf56e6a7dfd35cfc307576aa51819fc5a32b03118fab
   languageName: node
   linkType: hard
 
