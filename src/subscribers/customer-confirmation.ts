@@ -35,9 +35,7 @@ class CustomerConfirmationSubscriber {
 
   handleCustomerConfirmation = async (data: Record<string, any>) => {
     const customer = await this.customerService_.retrieve(data.id)
-    const sales_channel = await this.salesChannelService_.retrieve(data.sales_channel_id)
     const store = getStoreDetails(await this.salesChannelService_.retrieve(customer.sales_channel_id));
-
     debugLog("handleCustomerConfirmation running...")
     if (customer.has_account) {
       debugLog("customer has account...")
