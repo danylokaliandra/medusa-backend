@@ -34,7 +34,6 @@ class CustomerPasswordResetSubscriber {
 
   handleCustomerPasswordReset = async (data: Record<string, any>) => {
     const customer = await this.customerService_.retrieve(data.id)
-    //const sales_channel = await this.salesChannelService_.retrieve(customer.sales_channel_id)
     const store = getStoreDetails(await this.salesChannelService_.retrieve(customer.sales_channel_id));
     debugLog("handleCustomerPasswordReset running...")
     debugLog("using template ID:", SENDGRID_CUSTOMER_PASSWORD_RESET)
