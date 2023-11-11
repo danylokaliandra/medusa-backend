@@ -6,6 +6,7 @@ import { RocketLaunch, CubeSolid, XCircleSolid } from "@medusajs/icons"
 import { formatAmount } from "medusa-react"
 import { Region } from "@medusajs/medusa"
 import { useAdminOrders, useAdminCustomPost } from "medusa-react"
+import { CSVDownload } from "react-csv";
 
 interface BatchMetadata {
   batch_created: string
@@ -27,6 +28,7 @@ const Shipping = () => {
   const [showTracking, setShowTracking] = useState(false);
   const [trackingNumbers, setTrackingNumbers] = useState(new Array(selectedShippingFulfillments.length).fill({ fulfillmentId: "", trackingNumber: "" }));
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [downloadCSVKey, setDownloadCSVKey] = useState(null);
   // overall orders
   const { orders, isLoading, error, refetch } = useAdminOrders({
     limit: 0, // no limit (grab all orders)
@@ -141,6 +143,22 @@ const Shipping = () => {
     // refetch orders
     refetch();
   };
+
+  const generateCSVData = () => {
+    return packingOrdersFiltered.map(order => ({
+      name: order.shipping_address.first_name + (order.shipping_address.last_name ? ` ${order.shipping_address.last_name}` : '') ,
+      address_1: order.shipping_address.address_1,
+      address_2: order.shipping_address.address_2,
+      city: order.shipping_address.city,
+      province: order.shipping_address.province,
+      postal_code: order.shipping_address.postal_code,
+      country: order.shipping_address.country,
+    }));
+  };
+
+  const handleCSVDownload = () => {
+    setDownloadCSVKey(Date.now()); // Use the current timestamp as a unique key
+  }
 
   const generatePackingList = async () => {
     // CSS content based on Tailwind CSS
@@ -463,6 +481,18 @@ const Shipping = () => {
                     <CubeSolid/>
                   </IconButton>
                 ))}
+                <Button onClick={handleCSVDownload}
+                  disabled={selectedPackingOrders.length === 0}>
+                  Export Addresses
+                </Button>
+                {downloadCSVKey && (
+                  <CSVDownload
+                    key={downloadCSVKey}
+                    data={generateCSVData()}
+                    target="_blank"
+                    onDownload={() => setDownloadCSVKey(null)}
+                  />
+                )}
                 <Button onClick={generatePackingList}
                   disabled={selectedPackingOrders.length === 0}>Print Packing Lists{selectedPackingOrders.length > 0 && ` for Orders #${selectedPackingOrders.sort((a, b) => a - b).join(", ")}`}
                 </Button>
