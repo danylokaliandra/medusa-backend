@@ -58,6 +58,7 @@ const SENDGRID_FROM = process.env.SENDGRID_FROM;
 
 // RESEND
 const RESEND_API_KEY = process.env.RESEND_API_ID;
+const RESEND_ENABLE_ENDPOINT = process.env.RESEND_ENABLE_ENDPOINT;
 const RESEND_FROM = process.env.RESEND_FROM;
 const RESEND_TEMPLATE_PATH = process.env.RESEND_TEMPLATE_PATH;
 const RESEND_SUBJECT_TEMPLATE_TYPE = process.env.RESEND_SUBJECT_TEMPLATE_TYPE;
@@ -86,6 +87,7 @@ const plugins = [
     resolve: `medusa-plugin-resend`,
     options: {
       api_key: RESEND_API_KEY,
+      enable_endpoint: RESEND_ENABLE_ENDPOINT,
       from: RESEND_FROM,
       template_path: RESEND_TEMPLATE_PATH,
       subject_template_type: RESEND_SUBJECT_TEMPLATE_TYPE,
