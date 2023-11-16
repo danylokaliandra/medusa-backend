@@ -3,30 +3,30 @@ import { getProfile, getProfileByEmail, createProfile, updateProfile } from "../
 import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
 
-const SENDGRID_CUSTOMER_CONFIRMATION = process.env.SENDGRID_CUSTOMER_CONFIRMATION
-const SENDGRID_FROM = process.env.SENDGRID_FROM
+const RESEND_CUSTOMER_CONFIRMATION = process.env.RESEND_CUSTOMER_CONFIRMATION
+const RESEND_FROM = process.env.RESEND_FROM
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
   customerService: CustomerService,
   salesChannelService: SalesChannelService,
-  sendgridService: any
+  resendService: any
 }
 
 class CustomerConfirmationSubscriber {
   protected readonly customerService_: CustomerService
   protected readonly salesChannelService_: SalesChannelService
-  protected sendGridService: any
+  protected resendService_: any
 
   constructor({
     eventBusService,
     customerService,
     salesChannelService,
-    sendgridService,
+    resendService,
   }: InjectedDependencies) {
     this.customerService_ = customerService
     this.salesChannelService_ = salesChannelService
-    this.sendGridService = sendgridService
+    this.resendService_ = resendService
     eventBusService.subscribe(
       "customer.created", 
       this.handleCustomerConfirmation
@@ -39,29 +39,29 @@ class CustomerConfirmationSubscriber {
     debugLog("handleCustomerConfirmation running...")
     if (customer.has_account) {
       debugLog("customer has account...")
-      this.sendgridEmail(customer, store)
+      this.sendEmail(customer, store)
       this.klaviyoProfile(customer, store)
     }
   }
 
-  // SendGrid Email Handler
-  sendgridEmail = (customer: any, store) => {
+  // Email Handler
+  sendEmail = (customer: any, store) => {
     debugLog("sending email to:", customer.email)
-    debugLog("using template ID:", SENDGRID_CUSTOMER_CONFIRMATION)
+    debugLog("using template ID:", RESEND_CUSTOMER_CONFIRMATION)
+    debugLog("sending email to:", customer.email)
+    debugLog("sending email from:", RESEND_FROM)
     debugLog("using store details:", store)
-    debugLog("sending email to:", customer.email)
-    this.sendGridService.sendEmail({
-      templateId: SENDGRID_CUSTOMER_CONFIRMATION,
-      from: SENDGRID_FROM,
-      to: customer.email,
-      dynamic_template_data: {
+    this.resendService_.sendEmail(
+      RESEND_CUSTOMER_CONFIRMATION,
+      RESEND_FROM,
+      customer.email,
+      {
         email: customer.email,
         first_name: customer.first_name,
         last_name: customer.last_name,
         store: store,
-        /*data*/ /* add in to see the full data object returned by the event */
       },
-    })    
+    )    
   }
 
   // Klaviyo Profile Handler

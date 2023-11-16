@@ -3,26 +3,26 @@ import { createEvent } from "../scripts/klaviyo"
 import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
 
-const SENDGRID_ORDER_CANCELED = process.env.SENDGRID_ORDER_CANCELED
-const SENDGRID_FROM = process.env.SENDGRID_FROM
+const RESEND_ORDER_CANCELED = process.env.RESEND_ORDER_CANCELED
+const RESEND_FROM = process.env.RESEND_FROM
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
   orderService: OrderService,
-  sendgridService: any
+  resendService: any
 }
 
 class OrderCanceledSubscriber {
   protected readonly orderService_: OrderService
-  protected sendGridService: any
+  protected resendService_: any
 
   constructor({
     eventBusService,
     orderService, 
-    sendgridService,
+    resendService,
   }: InjectedDependencies) {
     this.orderService_ = orderService
-    this.sendGridService = sendgridService
+    this.resendService_ = resendService
     eventBusService.subscribe(
       "order.canceled", 
       this.handleOrderCanceled
@@ -42,30 +42,30 @@ class OrderCanceledSubscriber {
       debugLog("handleOrderCanceled running (resent event)...")
       email = data.email
     }
-    this.sendgridEmail(email, order, store)
+    this.sendEmail(email, order, store)
     if (!data.resend) {
       // send klaviyo event but not for resends
       this.klaviyoEvent(order, store)
     }
   }
 
-  // SendGrid Email Handler
-  sendgridEmail = (email: string, order: any, store) => {
+  // Email Handler
+  sendEmail = (email: string, order: any, store) => {
+    debugLog("using template ID:", RESEND_ORDER_CANCELED)
     debugLog("sending email to:", email)
-    debugLog("using template ID:", SENDGRID_ORDER_CANCELED)
+    debugLog("sending email from:", RESEND_FROM)
     debugLog("using store details:", store)
-    this.sendGridService.sendEmail({
-      templateId: SENDGRID_ORDER_CANCELED,
-      from: SENDGRID_FROM,
-      to: email,
-      dynamic_template_data: {
+    this.resendService_.sendEmail(
+      RESEND_ORDER_CANCELED,
+      RESEND_FROM,
+      email,
+      {
         order_id: order.display_id,
         order_date: new Date(order.created_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),
         customer: order.customer,
         store: store,
-        /*data*/ /* add in to see the full data object returned by the event */
       }
-    })
+    )
   }
 
   // Klaviyo Event Handler

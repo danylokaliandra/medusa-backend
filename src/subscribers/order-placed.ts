@@ -53,9 +53,9 @@ class OrderPlacedSubscriber {
 
   // Email Handler
   sendEmail = (email: string, order: any, store) => {
+    debugLog("using template ID:", RESEND_ORDER_PLACED)
     debugLog("sending email to:", email)
     debugLog("sending email from:", RESEND_FROM)
-    debugLog("using template ID:", RESEND_ORDER_PLACED)
     debugLog("using store details:", store)
     this.resendService_.sendEmail(
       RESEND_ORDER_PLACED,

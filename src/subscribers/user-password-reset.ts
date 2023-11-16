@@ -1,23 +1,23 @@
 import { EventBusService } from "@medusajs/medusa"
 import { debugLog } from "../scripts/debug"
 
-const SENDGRID_USER_PASSWORD_RESET = process.env.SENDGRID_USER_PASSWORD_RESET
-const SENDGRID_FROM = process.env.SENDGRID_FROM
+const RESEND_USER_PASSWORD_RESET = process.env.RESEND_USER_PASSWORD_RESET
+const RESEND_FROM = process.env.RESEND_FROM
 const ADMIN_URL = process.env.ADMIN_URL
 
 type InjectedDependencies = {
   eventBusService: EventBusService
-  sendgridService: any
+  resendService: any
 }
 
 class UserPasswordResetSubscriber {
-  protected sendGridService: any
+  protected resendService_: any
 
   constructor({ 
     eventBusService,
-    sendgridService, 
+    resendService, 
   }: InjectedDependencies) {
-    this.sendGridService = sendgridService
+    this.resendService_ = resendService
     eventBusService.subscribe(
       "user.password_reset", 
       this.handleUserPasswordReset
@@ -26,20 +26,20 @@ class UserPasswordResetSubscriber {
 
   handleUserPasswordReset = async (data: Record<string, any>) => {
     debugLog("handleUserPasswordReset running...")
-    debugLog("using template ID:", SENDGRID_USER_PASSWORD_RESET)
-    debugLog("using ADMIN_URL value:", ADMIN_URL)
+    debugLog("using template ID:", RESEND_USER_PASSWORD_RESET)
     debugLog("sending email to:", data.email)
-    this.sendGridService.sendEmail({
-      templateId: SENDGRID_USER_PASSWORD_RESET,
-      from: SENDGRID_FROM,
-      to: data.email,
-      dynamic_template_data: {
+    debugLog("sending email from:", RESEND_FROM)
+    debugLog("using ADMIN_URL value:", ADMIN_URL)
+    this.resendService_.sendEmail(
+      RESEND_USER_PASSWORD_RESET,
+      RESEND_FROM,
+      data.email,
+      {
         token: data.token,
         user_email: data.email,
         admin_url: ADMIN_URL
-        /*data*/ /* add in to see the full data object returned by the event */
       }
-    })
+    )
   }
 }
 

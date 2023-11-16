@@ -77,13 +77,6 @@ const plugins = [
   },
   // Email notifications
   {
-    resolve: `medusa-plugin-sendgrid`,
-    options: {
-      api_key: SENDGRID_API_KEY,
-      from: SENDGRID_FROM,
-    },
-  },
-  {
     resolve: `medusa-plugin-resend`,
     options: {
       api_key: RESEND_API_KEY,

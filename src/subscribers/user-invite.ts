@@ -1,23 +1,23 @@
 import { EventBusService } from "@medusajs/medusa"
 import { debugLog } from "../scripts/debug"
 
-const SENDGRID_USER_INVITE = process.env.SENDGRID_USER_INVITE
-const SENDGRID_FROM = process.env.SENDGRID_FROM
+const RESEND_USER_INVITE = process.env.RESEND_USER_INVITE
+const RESEND_FROM = process.env.RESEND_FROM
 const ADMIN_URL = process.env.ADMIN_URL
 
 type InjectedDependencies = {
   eventBusService: EventBusService
-  sendgridService: any
+  resendService: any
 }
 
 class InviteSubscriber {
-  protected sendGridService: any
+  protected resendService_: any
 
   constructor({ 
     eventBusService,
-    sendgridService, 
+    resendService, 
   }: InjectedDependencies) {
-    this.sendGridService = sendgridService
+    this.resendService_ = resendService
     eventBusService.subscribe(
       "invite.created", 
       this.handleInvite
@@ -26,20 +26,20 @@ class InviteSubscriber {
 
   handleInvite = async (data: Record<string, any>) => {
     debugLog("handleInvite running...")
-    debugLog("using template ID:", SENDGRID_USER_INVITE)
-    debugLog("using ADMIN_URL value:", ADMIN_URL)
+    debugLog("using template ID:", RESEND_USER_INVITE)
     debugLog("sending email to:", data.user_email)
-    this.sendGridService.sendEmail({
-      templateId: SENDGRID_USER_INVITE,
-      from: SENDGRID_FROM,
-      to: data.user_email,
-      dynamic_template_data: {
+    debugLog("sending email from:", RESEND_FROM)
+    debugLog("using ADMIN_URL value:", ADMIN_URL)
+    this.resendService_.sendEmail(
+      RESEND_USER_INVITE,
+      RESEND_FROM,
+      data.user_email,
+      {
         token: data.token,
         user_email: data.user_email,
         admin_url: ADMIN_URL
-        /*data*/ /* add in to see the full data object returned by the event */
       }
-    })
+    )
   }
 }
 

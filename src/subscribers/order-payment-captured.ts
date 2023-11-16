@@ -3,26 +3,26 @@ import { createEvent } from "../scripts/klaviyo"
 import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
 
-const SENDGRID_ORDER_PAID = process.env.SENDGRID_ORDER_PAID
-const SENDGRID_FROM = process.env.SENDGRID_FROM
+const RESEND_ORDER_PAID = process.env.RESEND_ORDER_PAID
+const RESEND_FROM = process.env.RESEND_FROM
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
   orderService: OrderService,
-  sendgridService: any
+  resendService: any
 }
 
 class OrderPaymentCapturedSubscriber {
   protected readonly orderService_: OrderService
-  protected sendGridService: any
+  protected resendService_: any
 
   constructor({
     eventBusService,
     orderService,
-    sendgridService,
+    resendService,
   }: InjectedDependencies) {
     this.orderService_ = orderService
-    this.sendGridService = sendgridService
+    this.resendService_ = resendService
     eventBusService.subscribe(
       "order.payment_captured", 
       this.handleOrderPaymentCaptured
@@ -43,7 +43,7 @@ class OrderPaymentCapturedSubscriber {
       email = data.email
     }
     if (!data.no_notification) { // do not send if notifications suppressed
-      this.sendgridEmail(email, order, store)
+      this.sendEmail(email, order, store)
       // send klaviyo event but not for resends
       if (!data.resend) {
         this.klaviyoEvent(order, store)
@@ -51,26 +51,26 @@ class OrderPaymentCapturedSubscriber {
   }
   }
 
-  // SendGrid Email Handler
-  sendgridEmail = (email: string, order: any, store) => {
+  // Email Handler
+  sendEmail = (email: string, order: any, store) => {
     debugLog("notifications on..."),
-    debugLog("using template ID:", SENDGRID_ORDER_PAID),
-    debugLog("using store details:", store),
+    debugLog("using template ID:", RESEND_ORDER_PAID),
     debugLog("sending email to:", email),
-    this.sendGridService.sendEmail({
-      templateId: SENDGRID_ORDER_PAID,
-      from: SENDGRID_FROM,
-      to: email,
-      dynamic_template_data: {
+    debugLog("sending email from:", RESEND_FROM),
+    debugLog("using store details:", store),
+    this.resendService_.sendEmail(
+      RESEND_ORDER_PAID,
+      RESEND_FROM,
+      email,
+      {
         order_id: order.display_id,
         order_date: new Date(order.created_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),
         status: order.status,
         customer: order.customer,
         shipping_address: order.shipping_address,
         store: store,
-        /*data*/ /* add in to see the full data object returned by the event */
       }
-    })
+    )
   }
 
   // Klaviyo Event Handler

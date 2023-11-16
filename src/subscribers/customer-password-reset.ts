@@ -2,30 +2,30 @@ import { CustomerService, SalesChannelService, EventBusService } from "@medusajs
 import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
 
-const SENDGRID_CUSTOMER_PASSWORD_RESET = process.env.SENDGRID_CUSTOMER_PASSWORD_RESET
-const SENDGRID_FROM = process.env.SENDGRID_FROM
+const RESEND_CUSTOMER_PASSWORD_RESET = process.env.RESEND_CUSTOMER_PASSWORD_RESET
+const RESEND_FROM = process.env.RESEND_FROM
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
   customerService: CustomerService,
   salesChannelService: SalesChannelService,
-  sendgridService: any
+  resendService: any
 }
 
 class CustomerPasswordResetSubscriber {
   protected readonly customerService_: CustomerService
   protected readonly salesChannelService_: SalesChannelService
-  protected sendGridService: any
+  protected resendService_: any
 
   constructor({
     eventBusService,
     customerService,
     salesChannelService,
-    sendgridService,
+    resendService,
   }: InjectedDependencies) {
     this.customerService_ = customerService
     this.salesChannelService_ = salesChannelService
-    this.sendGridService = sendgridService
+    this.resendService_ = resendService
     eventBusService.subscribe(
       "customer.password_reset", 
       this.handleCustomerPasswordReset
@@ -36,22 +36,22 @@ class CustomerPasswordResetSubscriber {
     const customer = await this.customerService_.retrieve(data.id)
     const store = getStoreDetails(await this.salesChannelService_.retrieve(customer.sales_channel_id));
     debugLog("handleCustomerPasswordReset running...")
-    debugLog("using template ID:", SENDGRID_CUSTOMER_PASSWORD_RESET)
-    debugLog("using store details:", store)
+    debugLog("using template ID:", RESEND_CUSTOMER_PASSWORD_RESET)
     debugLog("sending email to:", data.email)
-    this.sendGridService.sendEmail({
-      templateId: SENDGRID_CUSTOMER_PASSWORD_RESET,
-      from: SENDGRID_FROM,
-      to: data.email,
-      dynamic_template_data: {
+    debugLog("sending email from:", RESEND_FROM)
+    debugLog("using store details:", store)
+    this.resendService_.sendEmail(
+      RESEND_CUSTOMER_PASSWORD_RESET,
+      RESEND_FROM,
+      data.email,
+      {
         email: data.email,
         first_name: data.first_name,
         last_name: data.last_name,
         token: data.token,
         store: store,
-        /*data*/ /* add in to see the full data object returned by the event */
       },
-    })
+    )
   }
 }
 
