@@ -70,7 +70,7 @@ class OrderPlacedSubscriber {
       store.store_email,
       email,
       {
-        order_id: `DRAFT-${draftOrder.display_id}`,
+        order_id: `D-${String(draftOrder.display_id).padStart(6, '0')}`,
         order_date: new Date(draftOrder.created_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),
         status: draftOrder.status,
         customer: draftOrderCart.customer,

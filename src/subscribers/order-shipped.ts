@@ -62,7 +62,7 @@ class OrderShippedSubscriber {
       store.store_email,
       email,
       {
-        order_id: order.display_id,
+        order_id: String(order.display_id).padStart(8, '0'),
         // use ship date from first fulfillment
         shipped_date: new Date(order.fulfillments[0].shipped_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),
         order_date: new Date(order.created_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),
