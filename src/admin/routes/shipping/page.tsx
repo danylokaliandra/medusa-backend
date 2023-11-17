@@ -202,7 +202,8 @@ const Shipping = () => {
       <body>
     `;
 
-    for (const order of packingOrdersFiltered) {
+    for (let i = 0; i < packingOrdersFiltered.length; i++) {
+      const order = packingOrdersFiltered[i];
       // Capture Order Notes
       const { notes } = await medusa.admin.notes.list({
         resource_id: order.id,
@@ -212,17 +213,10 @@ const Shipping = () => {
 
       // Order Header
       html += `
-        <div class="bg-gray-300 text-center py-1">
-          <h1 class="text-lg font-bold">Packing Slip for Order #${String(order.display_id).padStart(8, '0')}${order.metadata.batch ? ` (${(order.metadata.batch as BatchMetadata).batch_name})` : ''}</h1>
-        </div>
-        <div class="flex justify-between items-center py-1">
-          <div>
-            <h2 class="text-xl font-semibold">${order.sales_channel.name ?? "undefined"}</h2>
-            <p>${order.sales_channel.metadata?.store_url ?? "undefined"}</p>
-          </div>
-          <div>
-            <img src="${order.sales_channel.metadata?.store_logo ?? "undefined"}" alt="Logo" class="w-12 h-12 max-w-full max-h-full" />
-          </div>
+        <div class="bg-gray-300 text-center py-1 flex justify-between items-center">
+          <h2 class="text-xl font-semibold">${order.sales_channel.name ?? "undefined"}</h2>
+          <h1 class="text-lg font-bold">Order #${String(order.display_id).padStart(8, '0')}${order.metadata.batch ? ` - ${(order.metadata.batch as BatchMetadata).batch_name}` : ''}</h1>
+          <img src="${order.sales_channel.metadata?.logo ?? "undefined"}" alt="Logo" class="w-12 h-12 max-w-full max-h-full" />
         </div>
         <div class="flex justify-between py-1">
           <div class="flex flex-col">
@@ -360,12 +354,14 @@ const Shipping = () => {
             </table>
           </div>
         </div>
-        <div class="bg-gray-300 text-center">
-          <h1 class="text-lg font-bold">----- END -----</h1>
-        </div>
         <br>
-        <div class="page-break"></div>
       `;
+
+      // Insert a page break after every second packing list, unless it's the last one
+      if ((i + 1) % 2 === 0 && i !== packingOrdersFiltered.length - 1) {
+        html += '<div class="page-break"></div>';
+      }
+
     };
 
     html += `
