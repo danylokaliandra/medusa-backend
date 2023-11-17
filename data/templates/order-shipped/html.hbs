@@ -1,5 +1,5 @@
 <a href="{{store.metadata.url}}" title="{{store.name}}"> <img src="{{store.metadata.logo}}" alt="{{store.name}}" style="width:70px;"></a><br><br>
-<div><strong>Hi {{customer.first_name}} {{customer.last_name}},</strong></div><br>
+<div><strong>Hi {{#if customer.has_account}}{{customer.first_name}} {{customer.last_name}}{{else}}{{shipping_address.first_name}} {{shipping_address.last_name}}{{/if}},</strong></div><br>
 <div>Thank you for your <strong>Order #{{order_id}}</strong> placed on {{order_date}}. Just letting you know it has now been <strong>{{#if isShipped}}shipped{{/if}}{{#if isPartiallyShipped}}partially shipped{{/if}}</strong> via {{store.metadata.shipper_name}} on <strong>{{shipped_date}}</strong>.</div><br>
 {{#if isShipped}}<div>Your order is now <strong>FULLY SHIPPED</strong>.</div><br>{{/if}}
 {{#if isPartiallyShipped}}<div><strong>Important:</strong> Your order is <strong>ONLY PARTIALLY SHIPPED</strong>, remaining pieces will be shipped soon.</div><br>{{/if}}

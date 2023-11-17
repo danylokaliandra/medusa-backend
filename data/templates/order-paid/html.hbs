@@ -1,5 +1,5 @@
 <a href="{{store.metadata.url}}" title="{{store.name}}"> <img src="{{store.metadata.logo}}" alt="{{store.name}}" style="width:70px;"></a><br><br>
-<div><strong>Hi {{customer.first_name}} {{customer.last_name}},</strong></div><br>
+<div><strong>Hi {{#if customer.has_account}}{{customer.first_name}} {{customer.last_name}}{{else}}{{shipping_address.first_name}} {{shipping_address.last_name}}{{/if}},</strong></div><br>
 <div>We have received your payment and processed <strong>Order #{{order_id}}</strong> placed on <strong>{{order_date}}</strong>, thank you! Your order will be shipped shortly, and you will receive a confirmation email with tracking numbers.</div><br>
 
 <div><strong>Delivery Address:</strong></div>

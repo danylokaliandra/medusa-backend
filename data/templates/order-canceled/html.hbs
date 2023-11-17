@@ -1,4 +1,4 @@
 <a href="{{store.metadata.url}}" title="{{store.name}}"> <img src="{{store.metadata.logo}}" alt="{{store.name}}" style="width:70px;"></a><br><br>
-<div><strong>Hi {{customer.first_name}} {{customer.last_name}},</strong></div><br>
+<div><strong>Hi {{#if customer.has_account}}{{customer.first_name}} {{customer.last_name}}{{else}}{{shipping_address.first_name}} {{shipping_address.last_name}}{{/if}},</strong></div><br>
 <div><strong>Order #{{order_id}}</strong> placed on <strong>{{order_date}}</strong> has been canceled.</div><br>
 <div>Thank you, and hope to see you again soon.{{#if customer.has_account}} You can access <strong><a href="{{store.metadata.url}}/account">your account area</a></strong> to view orders, change your password and more.{{/if}}</div><br>
