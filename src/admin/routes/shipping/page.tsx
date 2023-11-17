@@ -125,23 +125,32 @@ const Shipping = () => {
   };
 
   const handleBatchAssign = async (batchId) => {
+    if (selectedPackingOrders.length === 0 && batchId !== 0) {
+      // If no orders are selected and a batch box is clicked (not the clear box), select all orders with that batch number
+      const batchName = `Batch ${batchId}`;
+      const ordersToSelect = packingOrders
+        .filter(order => typeof order.metadata?.batch === 'object' && (order.metadata.batch as BatchMetadata).batch_name === batchName)
+        .map(order => order.display_id);
+      setSelectedPackingOrders(ordersToSelect);
+    } else {
     // batchId 0 to clear batch
-    for (const order of packingOrdersFiltered) {
-      const metadata: Metadata = batchId === 0 ? { batch: "" } : {
-        batch: {
-          batch_created: new Date().toISOString(),
-          batch_name: `Batch ${batchId}`,
-          batch_color: colors[batchId],
-        },
-      };
-      try {
-        await mutate({ id: order.id, metadata: metadata });
-      } catch (error) {
-        console.error(`Failed to update order ${order.display_id}:`, error);
+      for (const order of packingOrdersFiltered) {
+        const metadata: Metadata = batchId === 0 ? { batch: "" } : {
+          batch: {
+            batch_created: new Date().toISOString(),
+            batch_name: `Batch ${batchId}`,
+            batch_color: colors[batchId],
+          },
+        };
+        try {
+          await mutate({ id: order.id, metadata: metadata });
+        } catch (error) {
+          console.error(`Failed to update order ${order.display_id}:`, error);
+        }
       }
+      // refetch orders
+      refetch();
     }
-    // refetch orders
-    refetch();
   };
 
   const generateCSVData = () => {
@@ -463,7 +472,7 @@ const Shipping = () => {
             </div>
             <div>
               <Tabs.Content value="fulfillment">
-                <Button onClick={createFulfillments} disabled={selectedFulfillmentOrders.length === 0}>Fulfill Orders{selectedFulfillmentOrders.length > 0 && ` #${selectedFulfillmentOrders.sort((a, b) => a - b).join(", ")}`}</Button>
+                <Button onClick={createFulfillments} disabled={selectedFulfillmentOrders.length === 0}>Fulfill {selectedFulfillmentOrders.length > 0 && ` ${selectedFulfillmentOrders.length} `}Order{selectedFulfillmentOrders.length > 1 ? "s" : ""}</Button>
               </Tabs.Content>
               <Tabs.Content value="packing">
               <div className="flex space-x-2">
@@ -478,7 +487,7 @@ const Shipping = () => {
                   </IconButton>
                 ))}
                 <Button onClick={handleCSVDownload} disabled={selectedPackingOrders.length === 0}>
-                  Export Addresses
+                  Export {selectedPackingOrders.length > 0 && ` ${selectedPackingOrders.length} `}Address{selectedPackingOrders.length > 1 ? "es" : ""}
                 </Button>
                 {downloadCSVKey && (
                   <CSVDownload
@@ -488,20 +497,21 @@ const Shipping = () => {
                   />
                 )}
                 <Button onClick={generatePackingList}
-                  disabled={selectedPackingOrders.length === 0}>Print Packing Lists{selectedPackingOrders.length > 0 && ` for Orders #${selectedPackingOrders.sort((a, b) => a - b).join(", ")}`}
+                  disabled={selectedPackingOrders.length === 0}>Print {selectedPackingOrders.length > 0 && ` ${selectedPackingOrders.length} `}Packing List{selectedPackingOrders.length > 1 ? "s" : ""}
                 </Button>
               </div>
               </Tabs.Content>
               <Tabs.Content value="shipping">
               {!showTracking ? (
-                <Button onClick={handleShowTracking} disabled={selectedShippingFulfillments.length === 0}>Enter Tracking Numbers</Button>
+                <Button onClick={handleShowTracking} disabled={selectedShippingFulfillments.length === 0}>Enter {selectedShippingFulfillments.length > 0 && ` ${selectedShippingFulfillments.length} `}Tracking Number{selectedShippingFulfillments.length > 1 ? "s" : ""}</Button>
               ) : (
                 <div>
                   <Button onClick={handleShowTracking}>Back</Button>
                   <Button onClick={createShipments} disabled={selectedShippingFulfillments.length === 0 || selectedShippingFulfillments.some((fulfillmentId) => {
-                    const trackingInfo = trackingNumbers.find((tn) => tn && tn.fulfillmentId === fulfillmentId);
-                    return !trackingInfo || trackingInfo.trackingNumber.length !== 13;
-                  })}>Ship & Mark Complete</Button>
+                      const trackingInfo = trackingNumbers.find((tn) => tn && tn.fulfillmentId === fulfillmentId);
+                      return !trackingInfo || trackingInfo.trackingNumber.length !== 13;
+                    })}>Ship {selectedShippingFulfillments.length > 0 && ` ${selectedShippingFulfillments.length} `}Package{selectedShippingFulfillments.length > 1 ? "s" : ""}
+                  </Button>
                 </div>
               )}
               </Tabs.Content>
