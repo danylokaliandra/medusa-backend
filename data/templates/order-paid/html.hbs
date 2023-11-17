@@ -1,0 +1,13 @@
+<a href="{{store.metadata.url}}" title="{{store.name}}"> <img src="{{store.metadata.logo}}" alt="{{store.name}}" style="width:70px;"></a><br><br>
+<div><strong>Hi {{customer.first_name}} {{customer.last_name}},</strong></div><br>
+<div>We have received your payment and processed <strong>Order #{{order_id}}</strong> placed on <strong>{{order_date}}</strong>, thank you! Your order will be shipped shortly, and you will receive a confirmation email with tracking numbers.</div><br>
+
+<div><strong>Delivery Address:</strong></div>
+<div>{{shipping_address.first_name}} {{shipping_address.last_name}}</div>
+{{#if shipping_address.company}}<div>{{shipping_address.company}}</div>{{/if}}
+<div>{{shipping_address.address_1}}</div>
+{{#if shipping_address.address_2}}<div>{{shipping_address.address_2}}</div>{{/if}}
+<div>{{shipping_address.city}}, {{shipping_address.province}}</div>
+<div>{{shipping_address.postal_code}}</div>
+<br>
+<div>{{#if customer.has_account}}You can access <strong><a href="{{store.metadata.url}}/account">your account area</a></strong> to view orders, change your password and more.{{else}}Visit <strong><a href="{{store.metadata.url}}/account">our account area</a></strong> and sign up for deals, view orders, manage addresses and more.{{/if}}</div><br>

@@ -8,7 +8,6 @@
 **/node_modules
 **/dist
 **/uploads
-**/data
 **/build
 **/z_*/
 **/.cache
