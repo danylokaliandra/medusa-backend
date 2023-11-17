@@ -3,7 +3,7 @@ import type { OrderDetailsWidgetProps, WidgetConfig } from "@medusajs/admin"
 import { Container, Button, RadioGroup, Label, Input } from "@medusajs/ui"
 import { useAdminCustomPost, useAdminGetSession } from "medusa-react"
 
-const OrderDetailsWidget = ({ order }: OrderDetailsWidgetProps) => {
+const OrderDetailsWidgetAfter = ({ order }: OrderDetailsWidgetProps) => {
   const { user, isLoading } = useAdminGetSession()
   const { mutate } = useAdminCustomPost(
     `/admin/emails/${order.id}`,
@@ -88,4 +88,4 @@ export const config: WidgetConfig = {
   zone: "order.details.after",
 }
 
-export default OrderDetailsWidget
+export default OrderDetailsWidgetAfter
