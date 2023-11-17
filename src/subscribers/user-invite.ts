@@ -2,8 +2,8 @@ import { EventBusService } from "@medusajs/medusa"
 import { debugLog } from "../scripts/debug"
 
 const RESEND_USER_INVITE = process.env.RESEND_USER_INVITE
-const RESEND_FROM = process.env.RESEND_FROM
 const ADMIN_URL = process.env.ADMIN_URL
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL
 
 type InjectedDependencies = {
   eventBusService: EventBusService
@@ -28,11 +28,11 @@ class InviteSubscriber {
     debugLog("handleInvite running...")
     debugLog("using template ID:", RESEND_USER_INVITE)
     debugLog("sending email to:", data.user_email)
-    debugLog("sending email from:", RESEND_FROM)
+    debugLog("sending email from:", ADMIN_EMAIL)
     debugLog("using ADMIN_URL value:", ADMIN_URL)
     this.resendService_.sendEmail(
       RESEND_USER_INVITE,
-      RESEND_FROM,
+      ADMIN_EMAIL,
       data.user_email,
       {
         token: data.token,

@@ -4,7 +4,7 @@ import { getAmount } from "../scripts/get-amount"
 import { debugLog } from "../scripts/debug"
 
 const RESEND_ORDER_PLACED = process.env.RESEND_ORDER_PLACED
-const RESEND_FROM = process.env.RESEND_FROM
+
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
@@ -63,11 +63,11 @@ class OrderPlacedSubscriber {
   sendEmail = (email: string, draftOrder: any, draftOrderCart: any, store) => {
     debugLog("using template ID:", RESEND_ORDER_PLACED)
     debugLog("sending email to:", email)
-    debugLog("sending email from:", RESEND_FROM)
+    debugLog("sending email from:", store.store_email)
     debugLog("using store details:", store)
     this.resendService_.sendEmail(
       RESEND_ORDER_PLACED,
-      RESEND_FROM,
+      store.store_email,
       email,
       {
         order_id: `DRAFT-${draftOrder.display_id}`,

@@ -52,14 +52,9 @@ const S3_REGION = process.env.S3_REGION;
 const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
 const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
 
-// SENDGRID
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const SENDGRID_FROM = process.env.SENDGRID_FROM;
-
 // RESEND
 const RESEND_API_KEY = process.env.RESEND_API_ID;
 const RESEND_ENABLE_ENDPOINT = process.env.RESEND_ENABLE_ENDPOINT;
-const RESEND_FROM = process.env.RESEND_FROM;
 const RESEND_TEMPLATE_PATH = process.env.RESEND_TEMPLATE_PATH;
 const RESEND_SUBJECT_TEMPLATE_TYPE = process.env.RESEND_SUBJECT_TEMPLATE_TYPE;
 const RESEND_BODY_TEMPLATE_TYPE = process.env.RESEND_BODY_TEMPLATE_TYPE;
@@ -81,7 +76,6 @@ const plugins = [
     options: {
       api_key: RESEND_API_KEY,
       enable_endpoint: RESEND_ENABLE_ENDPOINT,
-      from: RESEND_FROM,
       template_path: RESEND_TEMPLATE_PATH,
       subject_template_type: RESEND_SUBJECT_TEMPLATE_TYPE,
       body_template_type: RESEND_BODY_TEMPLATE_TYPE,

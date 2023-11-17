@@ -4,7 +4,6 @@ import { getStoreDetails } from "../scripts/sales-channel"
 import { debugLog } from "../scripts/debug"
 
 const RESEND_ORDER_SHIPPED = process.env.RESEND_ORDER_SHIPPED
-const RESEND_FROM = process.env.RESEND_FROM
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
@@ -56,11 +55,11 @@ class OrderShippedSubscriber {
     debugLog("notifications on..."),
     debugLog("using template ID:", RESEND_ORDER_SHIPPED),
     debugLog("sending email to:", email),
-    debugLog("sending email from:", RESEND_FROM),
+    debugLog("sending email from:", store.store_email),
     debugLog("using store details:", store),
     this.resendService_.sendEmail(
       RESEND_ORDER_SHIPPED,
-      RESEND_FROM,
+      store.store_email,
       email,
       {
         order_id: order.display_id,

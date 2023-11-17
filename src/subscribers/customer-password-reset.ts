@@ -3,7 +3,7 @@ import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
 
 const RESEND_CUSTOMER_PASSWORD_RESET = process.env.RESEND_CUSTOMER_PASSWORD_RESET
-const RESEND_FROM = process.env.RESEND_FROM
+
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
@@ -38,11 +38,11 @@ class CustomerPasswordResetSubscriber {
     debugLog("handleCustomerPasswordReset running...")
     debugLog("using template ID:", RESEND_CUSTOMER_PASSWORD_RESET)
     debugLog("sending email to:", data.email)
-    debugLog("sending email from:", RESEND_FROM)
+    debugLog("sending email from:", store.store_email)
     debugLog("using store details:", store)
     this.resendService_.sendEmail(
       RESEND_CUSTOMER_PASSWORD_RESET,
-      RESEND_FROM,
+      store.store_email,
       data.email,
       {
         email: data.email,

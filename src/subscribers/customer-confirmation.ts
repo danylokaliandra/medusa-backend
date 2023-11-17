@@ -4,7 +4,6 @@ import { getStoreDetails } from "../scripts/sales-channel";
 import { debugLog } from "../scripts/debug"
 
 const RESEND_CUSTOMER_CONFIRMATION = process.env.RESEND_CUSTOMER_CONFIRMATION
-const RESEND_FROM = process.env.RESEND_FROM
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
@@ -49,11 +48,11 @@ class CustomerConfirmationSubscriber {
     debugLog("sending email to:", customer.email)
     debugLog("using template ID:", RESEND_CUSTOMER_CONFIRMATION)
     debugLog("sending email to:", customer.email)
-    debugLog("sending email from:", RESEND_FROM)
+    debugLog("sending email from:", store.store_email)
     debugLog("using store details:", store)
     this.resendService_.sendEmail(
       RESEND_CUSTOMER_CONFIRMATION,
-      RESEND_FROM,
+      store.store_email,
       customer.email,
       {
         email: customer.email,
