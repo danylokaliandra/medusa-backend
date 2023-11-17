@@ -55,11 +55,11 @@ class OrderPaymentCapturedSubscriber {
     debugLog("notifications on..."),
     debugLog("using template ID:", RESEND_ORDER_PAID),
     debugLog("sending email to:", email),
-    debugLog("sending email from:", store.store_email),
+    debugLog("sending email from:", store.metadata.email_store),
     debugLog("using store details:", store),
     this.resendService_.sendEmail(
       RESEND_ORDER_PAID,
-      store.store_email,
+      store.metadata.email_store,
       email,
       {
         order_id: String(order.display_id).padStart(8, '0'),

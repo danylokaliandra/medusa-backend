@@ -48,11 +48,11 @@ class CustomerConfirmationSubscriber {
     debugLog("sending email to:", customer.email)
     debugLog("using template ID:", RESEND_CUSTOMER_CONFIRMATION)
     debugLog("sending email to:", customer.email)
-    debugLog("sending email from:", store.store_email)
+    debugLog("sending email from:", store.metadata.email_store)
     debugLog("using store details:", store)
     this.resendService_.sendEmail(
       RESEND_CUSTOMER_CONFIRMATION,
-      store.store_email,
+      store.metadata.email_store,
       customer.email,
       {
         email: customer.email,

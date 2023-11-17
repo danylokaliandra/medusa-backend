@@ -63,11 +63,11 @@ class OrderPlacedSubscriber {
   sendEmail = (email: string, draftOrder: any, draftOrderCart: any, store) => {
     debugLog("using template ID:", RESEND_ORDER_PLACED)
     debugLog("sending email to:", email)
-    debugLog("sending email from:", store.store_email)
+    debugLog("sending email from:", store.metadata.email_store)
     debugLog("using store details:", store)
     this.resendService_.sendEmail(
       RESEND_ORDER_PLACED,
-      store.store_email,
+      store.metadata.email_store,
       email,
       {
         order_id: `D-${String(draftOrder.display_id).padStart(6, '0')}`,

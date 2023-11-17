@@ -38,11 +38,11 @@ class CustomerPasswordResetSubscriber {
     debugLog("handleCustomerPasswordReset running...")
     debugLog("using template ID:", RESEND_CUSTOMER_PASSWORD_RESET)
     debugLog("sending email to:", data.email)
-    debugLog("sending email from:", store.store_email)
+    debugLog("sending email from:", store.metadata.email_store)
     debugLog("using store details:", store)
     this.resendService_.sendEmail(
       RESEND_CUSTOMER_PASSWORD_RESET,
-      store.store_email,
+      store.metadata.email_store,
       data.email,
       {
         email: data.email,

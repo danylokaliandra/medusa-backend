@@ -218,10 +218,10 @@ const Shipping = () => {
         <div class="flex justify-between items-center py-1">
           <div>
             <h2 class="text-xl font-semibold">${order.sales_channel.name ?? "undefined"}</h2>
-            <p>${order.sales_channel.metadata?.store_url ?? "undefined"}</p>
+            <p>${order.sales_channel.metadata?.url ?? "undefined"}</p>
           </div>
           <div>
-            <img src="${order.sales_channel.metadata?.store_logo ?? "undefined"}" alt="Logo" class="w-12 h-12 max-w-full max-h-full" />
+            <img src="${order.sales_channel.metadata?.logo ?? "undefined"}" alt="Logo" class="w-12 h-12 max-w-full max-h-full" />
           </div>
         </div>
         <div class="flex justify-between py-1">
