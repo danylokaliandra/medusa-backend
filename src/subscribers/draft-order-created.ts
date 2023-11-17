@@ -3,14 +3,14 @@ import { getStoreDetails } from "../scripts/sales-channel";
 import { getAmount } from "../scripts/get-amount"
 import { debugLog } from "../scripts/debug"
 
-const SENDGRID_ORDER_PLACED = process.env.SENDGRID_ORDER_PLACED
-const SENDGRID_FROM = process.env.SENDGRID_FROM
+const RESEND_ORDER_PLACED = process.env.RESEND_ORDER_PLACED
+
 
 type InjectedDependencies = {
   eventBusService: EventBusService,
   draftOrderService: DraftOrderService,
   cartService: CartService,
-  sendgridService: any
+  resendService: any
 }
 
 /* const getAmount = (amount, region: Region ) => {
@@ -23,17 +23,17 @@ type InjectedDependencies = {
 class OrderPlacedSubscriber {
   protected readonly draftOrderService_: DraftOrderService
   protected readonly cartService_: CartService
-  protected sendGridService: any
+  protected resendService_: any
 
   constructor({
     eventBusService,
     draftOrderService,
     cartService,
-    sendgridService,
+    resendService,
   }: InjectedDependencies) {
     this.draftOrderService_ = draftOrderService
     this.cartService_ = cartService
-    this.sendGridService = sendgridService
+    this.resendService_ = resendService
     eventBusService.subscribe(
       "draft_order.created", 
       this.handleDraftOrderPlaced
@@ -55,21 +55,22 @@ class OrderPlacedSubscriber {
       const store = getStoreDetails(draftOrderCart.sales_channel)
       let email
       email = data.email
-      this.sendgridEmail(email, draftOrder, draftOrderCart, store)
+      this.sendEmail(email, draftOrder, draftOrderCart, store)
     }
   }
 
-  // SendGrid Email Handler
-  sendgridEmail = (email: string, draftOrder: any, draftOrderCart: any, store) => {
+  // Email Handler
+  sendEmail = (email: string, draftOrder: any, draftOrderCart: any, store) => {
+    debugLog("using template ID:", RESEND_ORDER_PLACED)
     debugLog("sending email to:", email)
-    debugLog("using template ID:", SENDGRID_ORDER_PLACED)
+    debugLog("sending email from:", store.metadata.email_store)
     debugLog("using store details:", store)
-    this.sendGridService.sendEmail({
-      templateId: SENDGRID_ORDER_PLACED,
-      from: SENDGRID_FROM,
-      to: email,
-      dynamic_template_data: {
-        order_id: `DRAFT-${draftOrder.display_id}`,
+    this.resendService_.sendEmail(
+      RESEND_ORDER_PLACED,
+      store.metadata.email_store,
+      email,
+      {
+        order_id: `D-${String(draftOrder.display_id).padStart(6, '0')}`,
         order_date: new Date(draftOrder.created_at).toLocaleDateString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',}),
         status: draftOrder.status,
         customer: draftOrderCart.customer,
@@ -88,9 +89,8 @@ class OrderPlacedSubscriber {
         shipping_total: getAmount(draftOrderCart.shipping_total, draftOrderCart.region),
         total: getAmount(draftOrderCart.total,draftOrderCart.region),
         store: store,
-        /*data*/ /* add in to see the full data object returned by the event */
       }
-    })    
+    )    
   }
 }
 

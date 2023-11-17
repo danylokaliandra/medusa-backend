@@ -1,0 +1,87 @@
+<a href="{{store.metadata.url}}" title="{{store.name}}"> <img src="{{store.metadata.logo}}" alt="{{store.name}}" style="width:70px;"></a><br><br>
+<div><strong>Hi {{customer.first_name}} {{customer.last_name}},</strong></div><br>
+<div>Thank you for your <strong>Order #{{order_id}}</strong> placed on <strong>{{order_date}}</strong>! Its status is <strong>on hold</strong> until we confirm that payment has been received.</div><br>
+<div>Please send your Interac e-Transfer to the following so that we can process and ship your order / Veuillez envoyer votre Interac e-Transfer à l'adresse suivante afin que nous puissions traiter et expédier votre commande:<br><br>
+Email / Courriel: <strong>{{store.metadata.transfers}}</strong><br>
+Security Question / Question de Sécurité: <strong>Hello</strong><br>
+Security Answer / Réponse de sécurité: <strong>{{order_id}}</strong><br>
+</div><br>
+<div><strong>Order #{{order_id}} Details:</strong></div>
+<div style="margin-bottom:20px">
+    <table cellspacing="0" cellpadding="6" border="1" style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;width:100%;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif">
+        <thead>
+            <tr>
+                <th scope="col" style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">Product</th>
+                <th scope="col" style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">Quantity</th>
+                <th scope="col" style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each items}}
+            <tr>
+                <td style="color:#333333;border:1px solid #e5e5e5;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif;word-wrap:break-word">
+                    {{this.title}}
+                </td>
+                <td style="color:#333333;border:1px solid #e5e5e5;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif">
+                    {{this.quantity}}
+                </td>
+                <td style="color:#333333;border:1px solid #e5e5e5;text-align:left;vertical-align:middle;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif">
+                    {{this.total}}
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th scope="row" colspan="2" style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left;border-top-width:4px">Subtotal</th>
+                <td style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left;border-top-width:4px">
+                    {{subtotal}}
+                </td>
+            </tr>
+            {{#if discount}}
+            <tr>
+                <th scope="row" colspan="2" style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">Discount</th>
+                <td style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">
+                    -{{discount_total}}
+                </td>
+            </tr>
+            {{/if}}
+            {{#if gift_card}}
+            <tr>
+                <th scope="row" colspan="2" style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">Gift Card</th>
+                <td style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">
+                    -{{gift_card_total}}
+                </td>
+            </tr>
+            {{/if}}
+            <tr>
+                <th scope="row" colspan="2" style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">Taxes</th>
+                <td style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">
+                    {{tax_total}}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row" colspan="2" style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">Shipping</th>
+                <td style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">
+                    {{shipping_total}}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row" colspan="2" style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">Total</th>
+                <td style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;text-align:left">
+                    {{total}}
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div><strong>Delivery Address:</strong></div>
+<div>{{shipping_address.first_name}} {{shipping_address.last_name}}</div>
+{{#if shipping_address.company}}<div>{{shipping_address.company}}</div>{{/if}}
+<div>{{shipping_address.address_1}}</div>
+{{#if shipping_address.address_2}}<div>{{shipping_address.address_2}}</div>{{/if}}
+<div>{{shipping_address.city}}, {{shipping_address.province}}</div>
+<div>{{shipping_address.postal_code}}</div>
+<br>
+<div>We look forward to fulfilling your order soon. {{#if customer.has_account}}You can access <strong><a href="{{store.metadata.url}}/account">your account area</a></strong> to view orders, change your password and more.{{else}}Visit <strong><a href="{{store.metadata.url}}/account">our account area</a></strong> and sign up for deals, view orders, manage addresses and more.{{/if}}</div><br>
