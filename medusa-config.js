@@ -83,25 +83,6 @@ const plugins = [
   },
   // File service storage - the LAST plugin declared will be used
   {
-    resolve: `medusa-file-minio`,
-    options: {
-        endpoint: MINIO_ENDPOINT,
-        bucket: MINIO_BUCKET,
-        access_key_id: MINIO_ACCESS_KEY,
-        secret_access_key: MINIO_SECRET_KEY,
-    },
-  },
-  {
-    resolve: `medusa-file-spaces`,
-    options: {
-        spaces_url: SPACE_URL,
-        bucket: SPACE_BUCKET,
-        endpoint: SPACE_ENDPOINT,
-        access_key_id: SPACE_ACCESS_KEY_ID,
-        secret_access_key: SPACE_SECRET_ACCESS_KEY,
-    },
-  },
-  {
     resolve: `medusa-file-s3`,
     options: {
         s3_url: S3_URL,
