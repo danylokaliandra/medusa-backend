@@ -1,6 +1,7 @@
 <a href="{{store.metadata.url}}" title="{{store.name}}"> <img src="{{store.metadata.logo}}" alt="{{store.name}}" style="width:70px;"></a><br><br>
 <div><strong>Hi {{#if customer.has_account}}{{customer.first_name}} {{customer.last_name}}{{else}}{{shipping_address.first_name}} {{shipping_address.last_name}}{{/if}},</strong></div><br>
-<div>Thank you for your <strong>Order #{{order_id}}</strong> placed on <strong>{{order_date}}</strong>! Its status is <strong>on hold</strong> until we confirm that payment has been received.</div><br>
+<div>Thank you for your <strong>Order #{{order_id}}</strong> placed on <strong>{{order_date}}</strong>!<br>
+{{{store.metadata.order_instructions}}}
 <div>Please send your Interac e-Transfer to the following so that we can process and ship your order / Veuillez envoyer votre Interac e-Transfer à l'adresse suivante afin que nous puissions traiter et expédier votre commande:<br><br>
 Email / Courriel: <strong>{{store.metadata.transfers}}</strong><br>
 Security Question / Question de Sécurité: <strong>Hello</strong><br>
