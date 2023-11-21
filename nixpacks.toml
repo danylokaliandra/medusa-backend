@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ['nodejs', 'yarn','postgresql']
+nixPkgs = ['nodejs', 'yarn', 'postgresql_16']
 
 [phases.install]
 cmds=['yarn install']
