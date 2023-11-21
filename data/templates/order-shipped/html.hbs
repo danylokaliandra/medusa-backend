@@ -3,7 +3,7 @@
 <div>Thank you for your <strong>Order #{{order_id}}</strong> placed on {{order_date}}. Just letting you know it has now been <strong>{{#if isShipped}}shipped{{/if}}{{#if isPartiallyShipped}}partially shipped{{/if}}</strong> via {{store.metadata.shipper_name}} on <strong>{{shipped_date}}</strong>.</div><br>
 {{#if isShipped}}<div>Your order is now <strong>FULLY SHIPPED</strong>.</div><br>{{/if}}
 {{#if isPartiallyShipped}}<div><strong>Important:</strong> Your order is <strong>ONLY PARTIALLY SHIPPED</strong>, remaining pieces will be shipped soon.</div><br>{{/if}}
-<div><strong>Tracking Numbers:</strong> </div>{{#each tracking_numbers}}<a href="{{store.metadata.shipper_link}}/{{this}}">{{this}}</a><br>{{/each}}<br>
+<div><strong>Tracking Numbers:</strong> </div>{{#each tracking_numbers}}<a href="{{../store.metadata.shipper_link}}/{{this}}">{{this}}</a><br>{{/each}}<br>
 <div><strong>Order #{{order_id}} Details:</strong></div>
 <div style="margin-bottom:20px">
     <table cellspacing="0" cellpadding="6" border="1" style="color:#333333;border:1px solid #e5e5e5;vertical-align:middle;width:100%;font-family:'Helvetica Neue',Helvetica,Roboto,Arial,sans-serif">
