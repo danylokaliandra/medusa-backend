@@ -106,8 +106,5 @@
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node"
-  },
-  "resolutions": {
-    "@types/mime": "1.3.5"
   }
 }
