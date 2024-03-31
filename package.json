@@ -12,6 +12,9 @@
     "headless",
     "medusa"
   ],
+  "engines": {
+    "node": "20"
+  },
   "scripts": {
     "clean": "cross-env ./node_modules/.bin/rimraf dist",
     "types": "tsc --noEmit",
