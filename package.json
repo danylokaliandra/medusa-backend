@@ -67,7 +67,6 @@
     "@babel/core": "^7.14.3",
     "@types/express": "^4.17.13",
     "@types/jest": "^27.4.0",
-    "@types/mime": "^4.0.0",
     "@types/node": "^17.0.8",
     "babel-preset-medusa-package": "^1.1.13",
     "cross-env": "^7.0.3",
