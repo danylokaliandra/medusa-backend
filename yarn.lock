@@ -5967,14 +5967,7 @@
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.17.0.tgz#d774355e41f372d5350a4d0714abb48194a489c3"
   integrity sha512-t7dhREVv6dbNj0q17X12j7yDG4bD/DHYX7o5/DbDxobP0HnGPgpRz2Ej77aL7TZT3DSw13fqUTj8J4mMnqa7WA==
 
-"@types/mime@*":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@types/mime/-/mime-4.0.0.tgz#b5f8a75697ac775ecf1daaea9bfb91cde065b397"
-  integrity sha512-5eEkJZ/BLvTE3vXGKkWlyTSUVZuzj23Wj8PoyOq2lt5I3CYbiLBOPb3XmCW6QcuOibIUE6emHXHt9E/F/rCa6w==
-  dependencies:
-    mime "*"
-
-"@types/mime@^1":
+"@types/mime@*", "@types/mime@1.6.0", "@types/mime@^1":
   version "1.3.5"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-1.3.5.tgz#1ef302e01cf7d2b5a0fa526790c9123bf1d06690"
   integrity sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==
@@ -6961,9 +6954,9 @@ builtin-modules@^3.3.0:
   integrity sha512-zhaCDicdLuWN5UbN5IMnFqNMhNfo919sH85y2/ea+5Yg9TsTkeZxpL+JLbp6cgYFS4sRLp3YV4S6yDuqVWHYOw==
 
 bullmq@^5.4.2:
-  version "5.4.6"
-  resolved "https://registry.yarnpkg.com/bullmq/-/bullmq-5.4.6.tgz#94f2c6fcfe55eed846de6b8ebe6bfb623d415eca"
-  integrity sha512-LfxMT+nfbq/Z1cMo5SJH0/P9sp9K2joZsX6ErDB+0IV6aYMqLaiV4p7nKtyWjoE8GoKy2ZdQU6DZJDHVjEhCIw==
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/bullmq/-/bullmq-5.5.0.tgz#77a314139a548518a8a1ecdf26e0ea023f074a94"
+  integrity sha512-pmWnAFTJpw0NgOzEPwpwvUPnVk691bbzXt4QZGS9bM61DnaoxrQi8zzaP/nRH3PYmsUfNUdHwbxJVxa0kDZrIg==
   dependencies:
     cron-parser "^4.6.0"
     ioredis "^5.3.2"
@@ -11046,11 +11039,6 @@ mime-types@^2.1.12, mime-types@^2.1.27, mime-types@^2.1.31, mime-types@~2.1.17, 
   integrity sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==
   dependencies:
     mime-db "1.52.0"
-
-mime@*:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/mime/-/mime-4.0.1.tgz#ad7563d1bfe30253ad97dedfae2b1009d01b9470"
-  integrity sha512-5lZ5tyrIfliMXzFtkYyekWbtRXObT9OWa8IwQ5uxTBDHucNNwniRqo0yInflj+iYi5CBa6qxadGzGarDfuEOxA==
 
 mime@1.6.0:
   version "1.6.0"
